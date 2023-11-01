@@ -12,9 +12,10 @@
 #define BUTTON_SELECT  3
 #define BUTTON_UP      4
 #define BUTTON_DOWN    5
+
 #define BUTTON_ENTER   6
 
-#define TIME_DELAY     3000
+#define TIME_DELAY     2000
 
 /**************************************************************************************
  * CONSTANTS
@@ -22,6 +23,7 @@
 
 static float const HOME_POS[6] = {157.5, 157.5, 157.5, 157.5, 157.5, 90.0};
 static float const WAVE_POS[6] = {180.0, 260.0, 157.5, 157.5, 157.5, 180.0};
+static float const AGREE_POS[6] = {160.0, 160.0, 210.0, 240.0, 100.0, 180.0};
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -118,7 +120,8 @@ void loop() {
       //Serial.println("- User pressed key:["+String(pressedKey)+"]");
     }
   }
-
+  
+  // wave the arm.
   if (pressedKey == BUTTON_RIGHT){
     Braccio.moveTo(WAVE_POS[0], WAVE_POS[1], WAVE_POS[2], WAVE_POS[3], WAVE_POS[4], WAVE_POS[5]);
     delay(TIME_DELAY*2);
@@ -129,7 +132,20 @@ void loop() {
         wristPitch.move().to(WAVE_POS[3]);    delay(TIME_DELAY);
     }
     
-    while(pressedKey == BUTTON_LEFT) { pressedKey = Braccio.getKey(); }
+    while(pressedKey == BUTTON_RIGHT) { pressedKey = Braccio.getKey(); }
+  }
+  
+  // 
+  if (pressedKey == BUTTON_UP){
+    Braccio.moveTo(AGREE_POS[0], AGREE_POS[1], AGREE_POS[2], AGREE_POS[3], AGREE_POS[4], AGREE_POS[5]);
+    delay(TIME_DELAY*2);
+    Serial.println("State: show aggree action");
+    for (int i = 1; i <= 5; i++) {
+      wristPitch.move().to(190.0f);       delay(TIME_DELAY);
+      wristPitch.move().to(240.0f);       delay(TIME_DELAY);
+      wristPitch.move().to(AGREE_POS[3]); delay(TIME_DELAY);
+    }
+    while(pressedKey == BUTTON_RIGHT) { pressedKey = Braccio.getKey(); }
   }
   
   if (pressedKey == BUTTON_SELECT)
