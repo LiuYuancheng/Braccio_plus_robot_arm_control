@@ -7,16 +7,21 @@
 /**************************************************************************************
  * DEFINES
  **************************************************************************************/
-
+#define BUTTON_LEFT    1
+#define BUTTON_RIGHT   2
 #define BUTTON_SELECT  3
+#define BUTTON_UP      4
+#define BUTTON_DOWN    5
 #define BUTTON_ENTER   6
-#define TIME_DELAY     2000
+
+#define TIME_DELAY     3000
 
 /**************************************************************************************
  * CONSTANTS
  **************************************************************************************/
 
 static float const HOME_POS[6] = {157.5, 157.5, 157.5, 157.5, 157.5, 90.0};
+static float const WAVE_POS[6] = {180.0, 260.0, 157.5, 157.5, 157.5, 180.0};
 
 /**************************************************************************************
  * GLOBAL VARIABLES
@@ -52,7 +57,15 @@ void setup() {
 
 void loop() {
   int pressedKey = Braccio.getKey();
-
+  //Serial.println("User pressed key:["+String(pressedKey)+"]");
+  
+  if (pressedKey == BUTTON_LEFT){
+    Braccio.moveTo(HOME_POS[0], HOME_POS[1], HOME_POS[2], HOME_POS[3], HOME_POS[4], HOME_POS[5]);
+    delay(TIME_DELAY*2);
+    Serial.println("State: Return to home position");
+    while(pressedKey == BUTTON_LEFT) { pressedKey = Braccio.getKey(); }
+  }
+  
   if (pressedKey == BUTTON_ENTER)
   {
     // Pinch movement
@@ -85,13 +98,13 @@ void loop() {
     elbow.move().to(HOME_POS[3]); delay(TIME_DELAY);
 
     // Shoulder movement
-    shoulder.move().to(120.0f);       delay(TIME_DELAY/2);
-    shoulder.move().to(90.0f);        delay(TIME_DELAY/2);
-    shoulder.move().to(120.0f);       delay(TIME_DELAY/2);
+    shoulder.move().to(120.0f);       delay(TIME_DELAY);
+    shoulder.move().to(90.0f);        delay(TIME_DELAY);
+    shoulder.move().to(120.0f);       delay(TIME_DELAY);
     shoulder.move().to(HOME_POS[4]);  delay(TIME_DELAY);
-    shoulder.move().to(200.0f);       delay(TIME_DELAY/2);
-    shoulder.move().to(230.0f);       delay(TIME_DELAY/2);
-    shoulder.move().to(200.0f);       delay(TIME_DELAY/2);
+    shoulder.move().to(200.0f);       delay(TIME_DELAY);
+    shoulder.move().to(230.0f);       delay(TIME_DELAY);
+    shoulder.move().to(200.0f);       delay(TIME_DELAY);
     shoulder.move().to(HOME_POS[4]);  delay(TIME_DELAY);
 
     // Base movement
@@ -100,9 +113,25 @@ void loop() {
     base.move().to(315.0f);            delay(TIME_DELAY);
     base.move().to(HOME_POS[5]);       delay(TIME_DELAY);
 
-    while(pressedKey == BUTTON_ENTER) { pressedKey = Braccio.getKey(); }
+    while(pressedKey == BUTTON_ENTER) { 
+      pressedKey = Braccio.getKey(); 
+      //Serial.println("- User pressed key:["+String(pressedKey)+"]");
+    }
   }
 
+  if (pressedKey == BUTTON_RIGHT){
+    Braccio.moveTo(WAVE_POS[0], WAVE_POS[1], WAVE_POS[2], WAVE_POS[3], WAVE_POS[4], WAVE_POS[5]);
+    delay(TIME_DELAY*2);
+    Serial.println("State: start to waving");
+      for (int i = 1; i <= 5; i++) {
+        wristPitch.move().to(120.0f);         delay(TIME_DELAY);
+        wristPitch.move().to(200.0f);         delay(TIME_DELAY);
+        wristPitch.move().to(WAVE_POS[3]);    delay(TIME_DELAY);
+    }
+    
+    while(pressedKey == BUTTON_LEFT) { pressedKey = Braccio.getKey(); }
+  }
+  
   if (pressedKey == BUTTON_SELECT)
   {
     // Fetch the joints positions
@@ -120,7 +149,9 @@ void loop() {
                  "| 6 - Base\t\t|\t" + String(angles[5]) + "\t|\n" +
                  "*****************************************\n\n\n\n\n");
 
-    while(pressedKey == BUTTON_SELECT) { pressedKey = Braccio.getKey(); }
-
+    while(pressedKey == BUTTON_SELECT) { 
+      pressedKey = Braccio.getKey();
+      //Serial.println("- User pressed key:["+String(pressedKey)+"]");
+    }
   }
 }
