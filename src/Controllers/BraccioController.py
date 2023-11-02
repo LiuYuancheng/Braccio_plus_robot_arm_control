@@ -79,12 +79,16 @@ class UIFrame(wx.Frame):
         mSizer.AddSpacer(5)
         mSizer.Add(wx.StaticLine(self, wx.ID_ANY, size=(890, -1),
                         style=wx.LI_HORIZONTAL), flag=wx.LEFT, border=2)
-        mSizer.AddSpacer(5)
+        mSizer.AddSpacer(10)
 
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
         self.retBt = wx.Button(self, label='Reset Poistion', size=(80, 22))
         self.retBt.Bind(wx.EVT_BUTTON, self.onReset)
         hbox3.Add(self.retBt, flag=flagsL, border=2)
+
+        self.loadBt = wx.Button(self, label='Load Action Scenario', size=(140, 22))
+        self.loadBt.Bind(wx.EVT_BUTTON, self.onLoad)
+        hbox3.Add(self.loadBt, flag=flagsL, border=2)
 
         mSizer.Add(hbox3, flag=flagsL, border=2)
 
@@ -288,6 +292,17 @@ class UIFrame(wx.Frame):
             self.baseDis.updateAngle(angle1=angles[5])
             self.baseDis.updateDisplay()
 
+    def onLoad(self, event):
+        taskList = [('grip', '220'), ('base', '90'), ('shld', '155'), ('elbw', '90'), ('wrtP', '205'),
+                    ('wrtR', '150'),
+                    ('grip', '160'),
+                    ('elbw', '130'),
+                    ('base', '180'),
+                    ('grip', '220'),
+                ]
+        self.commMgr.setTask(taskList)
+
+
 #--UIFrame---------------------------------------------------------------------
     def periodic(self, event):
         """ Call back every periodic time."""
@@ -295,9 +310,10 @@ class UIFrame(wx.Frame):
         if (not self.updateLock) and now - self.lastPeriodicTime >= gv.gUpdateRate:
             #print("main frame update at %s" % str(now))
             self.lastPeriodicTime = now
-            angles = self.commMgr.getPos()
-            if not angles is None:
-                self.updateDisplay(angles)
+            if not self.commMgr.hasNewTask():
+                angles = self.commMgr.getPos()
+                if not angles is None:
+                    self.updateDisplay(angles)
 
     def onClose(self, event):
         self.commMgr.stop()

@@ -25,6 +25,7 @@ class CtrlManager(object):
     """
     def __init__(self, parent, comInfo) -> None:
         self.connector = serialCom.serialCom(None, serialPort='COM3',baudRate=9600)
+        self.cmdSeq = []
         if self.connector.connected:
             print("Linked to the Braccio robot successfully")
         else:
@@ -52,7 +53,18 @@ class CtrlManager(object):
     def resetPos(self):
         cmd = 'RST'
         self.connector.write(cmd.encode('utf-8'))
-        
+
     def stop(self):
         if self.connector:
             self.connector.close()
+
+    def hasNewTask(self):
+        if len(self.cmdSeq) == 0:
+            return False
+        prt, val = self.cmdSeq.pop(0)
+        print("run action: %s" %str((prt, val)))
+        self.movPart(prt, val)
+        return True
+    
+    def setTask(self, tasklist):
+        self.cmdSeq = tasklist
