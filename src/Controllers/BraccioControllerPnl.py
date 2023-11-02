@@ -26,8 +26,8 @@ class angleDisplayPanel(wx.Panel):
         self.panelSize = panelSize
         self.title = title
         self.limitRange = limitRange
-        self.angle1 = 90.1
-        self.angle2 = 120.4
+        self.angle1 = None
+        self.angle2 = None
         self.bmp = wx.Bitmap(gv.BGIMG_PATH, wx.BITMAP_TYPE_ANY)
         self.Bind(wx.EVT_PAINT, self.onPaint)
         self.SetDoubleBuffered(True)
