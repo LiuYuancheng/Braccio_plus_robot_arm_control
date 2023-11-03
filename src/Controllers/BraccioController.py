@@ -60,11 +60,18 @@ class UIFrame(wx.Frame):
         mSizer = wx.BoxSizer(wx.VERTICAL)
         
         mSizer.AddSpacer(5)
-                                
-        self.serialLedBt = wx.Button(self, label='Serial Comm Connection : OFF', size=(180, 30))
-        self.serialLedBt.SetBackgroundColour(wx.Colour('GRAY'))
-        mSizer.Add(self.serialLedBt, flag=flagsL, border=2)
 
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.commChoice = wx.Choice(self, size = (120, 30), choices = ['Serial : COM3', 'WIFI : UDP', 'WIFI : TCP'])
+        self.commChoice.SetSelection(0)
+        hbox0.Add(self.commChoice, flag=flagsL | wx.CENTER, border=2)
+        hbox0.AddSpacer(10)
+        self.serialLedBt = wx.Button(self, label='Comm Connection : OFF', size=(150, 26))
+        self.serialLedBt.SetBackgroundColour(wx.Colour('GRAY'))
+        hbox0.Add(self.serialLedBt, flag=flagsL, border=2)
+
+        mSizer.Add(hbox0, flag=flagsL, border=2)
 
         mSizer.AddSpacer(5)
         mSizer.Add(wx.StaticLine(self, wx.ID_ANY, size=(890, -1),
@@ -342,7 +349,7 @@ class UIFrame(wx.Frame):
         connFlg = self.commMgr.getConnection()
         if self.connected != connFlg:
             colourStr = 'GREEN' if connFlg else 'GRAY'
-            labelStr = 'Serial Comm Connection : ON ' if connFlg else 'Serial Comm Connection : OFF'
+            labelStr = 'Comm Connection : ON ' if connFlg else 'Comm Connection : OFF'
             self.serialLedBt.SetBackgroundColour(wx.Colour(colourStr))
             self.serialLedBt.SetLabel(labelStr)
             self.connected = connFlg
