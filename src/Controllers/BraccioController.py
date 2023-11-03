@@ -14,7 +14,7 @@ import os
 import sys
 import time
 import wx
-import uiGobal as gv
+import BraccioCtrlGlobal as gv
 import BraccioControllerPnl as pl
 import BraccioCtrlManger as mgr
 PERIODIC = 500      # update in every 500ms
@@ -30,7 +30,7 @@ class UIFrame(wx.Frame):
         #wx.Frame.__init__(self, parent, id, title, style=wx.MINIMIZE_BOX | wx.STAY_ON_TOP)
         self.SetBackgroundColour(wx.Colour(200, 210, 200))
         #self.SetTransparent(gv.gTranspPct*255//100)
-        #self.SetIcon(wx.Icon(gv.ICO_PATH))
+        self.SetIcon(wx.Icon(gv.ICO_PATH))
         self.commMgr = mgr.CtrlManager(self, None)
         # Build UI sizer
         self.angles = [None]*6
@@ -229,32 +229,32 @@ class UIFrame(wx.Frame):
 
     def onGripperAdj(self, event):
         val = self.gripperCtrl.GetValue()
-        self.commMgr.movPart('grip', str(val))
+        self.commMgr.addMotorMovTask('grip', str(val))
         print(val)
 
     def onWristRollAdj(self, event):
         val = self.wristRollDisCtrl.GetValue()
-        self.commMgr.movPart('wrtR', str(val))
+        self.commMgr.addMotorMovTask('wrtR', str(val))
         print(val)
 
     def onWristPitchAdj(self, event):
         val = self.wristPitchDisCtrl.GetValue()
-        self.commMgr.movPart('wrtP', str(val))
+        self.commMgr.addMotorMovTask('wrtP', str(val))
         print(val)
 
     def onElbowAdj(self, event):
         val = self.elbowDisCtrl.GetValue()
-        self.commMgr.movPart('elbw', str(val))
+        self.commMgr.addMotorMovTask('elbw', str(val))
         print(val)
 
     def onShoulderAdj(self, event):
         val = self.shoulderDisCtrl.GetValue()
-        self.commMgr.movPart('shld', str(val))
+        self.commMgr.addMotorMovTask('shld', str(val))
         print(val)
 
     def onBaseAdj(self, event):
         val = self.baseDisCtrl.GetValue()
-        self.commMgr.movPart('base', str(val))
+        self.commMgr.addMotorMovTask('base', str(val))
 
     def onReset(self, event):
         self.commMgr.resetPos()
@@ -300,8 +300,8 @@ class UIFrame(wx.Frame):
                     ('base', '180'),
                     ('grip', '220'),
                 ]
-        self.commMgr.setTask(taskList)
-
+        for mvtask in taskList:
+            self.commMgr.addMotorMovTask(mvtask[0], mvtask[1])
 
 #--UIFrame---------------------------------------------------------------------
     def periodic(self, event):
@@ -310,10 +310,14 @@ class UIFrame(wx.Frame):
         if (not self.updateLock) and now - self.lastPeriodicTime >= gv.gUpdateRate:
             #print("main frame update at %s" % str(now))
             self.lastPeriodicTime = now
-            if not self.commMgr.hasNewTask():
-                angles = self.commMgr.getPos()
-                if not angles is None:
-                    self.updateDisplay(angles)
+            if self.commMgr.hasQueuedTask():
+                self.commMgr.runQueuedTask()
+            else:
+                self.commMgr.fetchMotorPos()
+            # update the display
+            angles = self.commMgr.getModtorPos()
+            if not angles is None:
+                self.updateDisplay(angles)
 
     def onClose(self, event):
         self.commMgr.stop()

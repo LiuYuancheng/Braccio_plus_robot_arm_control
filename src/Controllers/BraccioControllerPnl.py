@@ -13,7 +13,7 @@ import wx
 import math
 
 from datetime import datetime
-import uiGobal as gv
+import BraccioCtrlGlobal as gv
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
