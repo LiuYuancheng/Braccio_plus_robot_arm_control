@@ -13,9 +13,15 @@ The robot arms are widely used in the Industry 4.0 scenario such as create smart
 
 ### Introduction
 
+**Background Introduction** 
+
 The Industry 4.0, or the 4th Industrial Revolution, was made possible by developing new technologies such as cyber-physical systems, the Internet of Things, cloud computing, cognitive computing, and Artificial Intelligence. 
 
 Arduino Braccio ++ offers a multitude of expansive possibilities from the very outset, including a new Braccio Carrier with LCD screen, new RS485 servo motors, and a totally enhanced experience. Detailed introduction please refer to the Braccio official website: https://store.arduino.cc/products/braccioplusplus
+
+The Braccio_Plus_Robot_Arm_Controller provide the Arduino firmware and UI based controller program for user to remote  control the Braccio ++ via serial port, UDP or TCP and let the robot do some complex actions. This is a example to let the robot arm to execute a box transfer playbook:
+
+ ![](doc/img/grabbox.gif)
 
 Our program contents 2 parts: 
 
@@ -29,7 +35,7 @@ Our program contents 2 parts:
 
 Controller UI screen shot: 
 
-![](doc/img/controller_ui.png)
+![](doc/img/controller_ui_mid.png)
 
 
 
