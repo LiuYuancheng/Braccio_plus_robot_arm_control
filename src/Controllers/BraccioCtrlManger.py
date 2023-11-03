@@ -78,7 +78,10 @@ class CtrlManager(object):
                 self.motorAngles = [int(float(val)) for val in data.split(';')[:6]]
         else:
             self.motorAngles = [None]*6
-       
+
+    def getConnection(self):
+        return self.connected
+
     def getModtorPos(self):
         return self.motorAngles 
     

@@ -1,0 +1,57 @@
+[
+    {
+        "act": "MOV",
+        "key": "grip",
+        "val": "220"
+    },
+    {
+        "act": "MOV",
+        "key": "base",
+        "val": "90"
+    },
+    {
+        "act": "MOV",
+        "key": "shld",
+        "val": "155"
+    },
+    {
+        "act": "MOV",
+        "key": "elbw",
+        "val": "90"
+    },
+    {
+        "act": "MOV",
+        "key": "wrtP",
+        "val": "205"
+    },
+    {
+        "act": "MOV",
+        "key": "wrtR",
+        "val": "150"
+    },
+    {
+        "act": "MOV",
+        "key": "grip",
+        "val": "160"
+    },
+    {
+        "act": "MOV",
+        "key": "elbw",
+        "val": "130"
+    },
+    {
+        "act": "MOV",
+        "key": "base",
+        "val": "180"
+    },
+    {
+        "act": "MOV",
+        "key": "grip",
+        "val": "220"
+    },
+    {
+        "act": "RST",
+        "key": null,
+        "val": null
+    }
+]

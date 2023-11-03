@@ -22,18 +22,21 @@ import os
 print("Current working directory is : %s" % os.getcwd())
 dirpath = os.path.dirname(__file__)
 print("Current source code location : %s" % dirpath)
-APP_NAME = 'Barccio Controller'
+APP_NAME = 'Barccio Serial Controller'
 
 #------<IMAGES PATH>-------------------------------------------------------------
 IMG_FD = 'img'
 ICO_PATH = os.path.join(dirpath, IMG_FD, "icon.png")
 BGIMG_PATH = os.path.join(dirpath, IMG_FD, "background.png")
 
+SCE_FD = os.path.join(dirpath, 'Scenarios')
+
 STR_DECODE = 'utf-8'
 DEBUG = True
 
 #-------<GLOBAL VARIABLES (start with "g")>------------------------------------
 # VARIABLES are the built in data type.
+gTestMD = False
 gUpdateRate = 3     # main frame update rate 1 sec.
 
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
