@@ -49,14 +49,14 @@ This session will introduce the detail design Braccio ++ Arduino firmware and Br
 
  ![](doc/img/workflow.png)
 
-**Braccio ++ Arduino firmware** 
+##### **Braccio ++ Arduino firmware** 
 
 The Braccio ++ Arduino firmware will be load in to the Arduino Nano RP2040 board, it contents 2 main parts: 
 
 - Communication handling : for different firmware (`Braccio_serial_comm.ino`, `Braccio_tcp_comm.ino`, `Braccio_udp_comm.ino`), they will provide different communication protocol handler to receive the control request from controller and feed back the action execution result / state . 
 - Request handling : based on the request, call different API to control the robot arm and the components on the Arduino carrier board. 
 
-**Braccio ++ Controller UI** 
+##### **Braccio ++ Controller UI** 
 
 The Braccio ++ Controller UI will run on user's computer with 2 thread; 
 
@@ -118,8 +118,84 @@ Hardware needed:
 
 Program Files List : 
 
-| Program File                            | Execution Env | Description                                                  |
-| --------------------------------------- | ------------- | ------------------------------------------------------------ |
-| src\Braccio_src\Braccio_serial_comm.ino | C++           | Braccio ++ Arduino firmware which provide the Serial COM port [wired connection] communication. |
-| src\Braccio_src\Braccio_tcp_comm.ino    | C++           | Braccio ++ Arduino firmware which provide the network TCP [wireless connection] communication. (under development) |
-| src\Braccio_src\Braccio_tcp_comm.ino    | C++           | Braccio ++ Arduino firmware which provide the network UDP [wireless connection] communication. (under development) |
+| Program File                              | Execution Env | Description                                                  |
+| ----------------------------------------- | ------------- | ------------------------------------------------------------ |
+| `src\Braccio_src\Braccio_serial_comm.ino` | C++           | Braccio ++ Arduino firmware which provide the Serial COM port [wired connection] communication. |
+| `src\Braccio_src\Braccio_tcp_comm.ino`    | C++           | Braccio ++ Arduino firmware which provide the network TCP [wireless connection] communication. (under development) |
+| `src\Braccio_src\Braccio_tcp_comm.ino`    | C++           | Braccio ++ Arduino firmware which provide the network UDP [wireless connection] communication. (under development) |
+
+
+
+**Braccio ++ Controller UI** 
+
+Development/Execution Environment : python 3.7.4+
+
+Additional Lib/Software Need: 
+
+- Serial Port communication lib: [pySerial](https://pyserial.readthedocs.io/en/latest/pyserial.html)
+
+Hardware needed : micro USB cable to Arduino
+
+Program Files List : 
+
+| Program File                              | Execution Env | Description                                                  |
+| ----------------------------------------- | ------------- | ------------------------------------------------------------ |
+| `src\Controllers\BraccioController.py`    | python        | The main controller user interface frame.                    |
+| `src\Controllers\BraccioControllerPnl.py` | python        | This module will provide the motor controller and potentiometer reading display panel for the controller. |
+| `src\Controllers\BraccioCtrlGlobal.py`    | python        | This module is used as a local config file to set constants, global parameters which will be used in the other modules. |
+| `src\Controllers\BraccioCtrlManger.py`    | python        | This module is the communication and data manager to connect to Arduino to send the control request and fetch the potentiometer data. |
+| `src\Controllers\serialCom.py`            | python        | This module will inheritance the python serial. Serial module with automatically serial port search and connection function. |
+
+
+
+------
+
+### Program Usage
+
+##### Assemble the Braccio++ robot arm 
+
+Follow the below link to assemble the Braccio++ robot arm and link the Arduino Nano to computer with the micro USB cable. 
+
+https://docs.arduino.cc/retired/getting-started-guides/Braccio
+
+![](doc/img/assemble.png)
+
+If you are using the Windows-OS select Device manager => Com port, record the COM port number then set the serial COM bandwidth to 9600. 
+
+
+
+##### Load the Braccio ++ Arduino firmware 
+
+If you are 1st time using the Braccio ++, you need to load the firm ware in to the Arduino. Open the Arduino IDE, click the lib icon then search Braccio ++ and install the Braccio ++ API lib (we highly recommend you use the web-IDE so you don't need to fix the lib version problem ) :
+
+![](doc/img/install_lib.png)
+
+Then open the file `Braccio_serial_comm.ino`, click the compile button , after compile finished, press the upload button to transfer the compiled firmware to the Arduino : 
+
+![](doc/img/upload.png)
+
+
+
+##### Run the robot arm controller program
+
+After finished load the firmware, open folder "controllers" and run the controller UI program: 
+
+```
+python BraccioController.py
+```
+
+**Connect to the Braccio ++ Arduino**
+
+In the top communication selection drop down menu, select the connection type: 
+
+![](doc/img/select_comm.png)
+
+When the controller connect to the Braccio ++ Arduino successful, the connection indicator will change from gray to green and all the potentiometer's reading and motor position will show on the UI:
+
+![](doc/img/connected.png)
+
+To make the moto move a specific angle / position, drag the thumber of the related motor controller, when release the thumber, the angle /position move request will be send to the robot arm:
+
+ ![](doc/img/move_motor.png)
+
+If you want to reset the 

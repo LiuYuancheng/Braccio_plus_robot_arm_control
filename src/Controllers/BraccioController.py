@@ -2,13 +2,14 @@
 #-----------------------------------------------------------------------------
 # Name:        BraccioController.py
 #
-# Purpose:     This module is used as a sample to create the main wx frame.
+# Purpose:     This module is the main controller UI frame.
 #
 # Author:      Yuancheng Liu
 #
-# Created:     2019/01/10
-# Copyright:   YC @ Singtel Cyber Security Research & Development Laboratory
-# License:     YC
+# Version:     v_0.1
+# Created:     2023/09/21
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License  
 #-----------------------------------------------------------------------------
 import os
 import sys

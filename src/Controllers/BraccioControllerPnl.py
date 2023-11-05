@@ -1,13 +1,16 @@
 #!/usr/bin/python
 #-----------------------------------------------------------------------------
-# Name:        uiPanel.py
+# Name:        BraccioControllerPnl.py
 #
-# Purpose:     This module is used to create different function panels.
+# Purpose:     This module will provide the motor controller and potentiometer
+#              reading display panel for the controller.
+# 
 # Author:      Yuancheng Liu
 #
-# Created:     2020/01/10
-# Copyright:   YC @ Singtel Cyber Security Research & Development Laboratory
-# License:     YC
+# Version:     v_0.1
+# Created:     2023/09/21
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License  
 #-----------------------------------------------------------------------------
 import wx
 import math

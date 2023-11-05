@@ -1,16 +1,17 @@
 #!/usr/bin/python
 #-----------------------------------------------------------------------------
-# Name:        scadaDataMgr.py
+# Name:        BraccioCtrlManger.py
 #
-# Purpose:     Data manager module used to control all the other data processing 
-#              modules and store the interprocess /result data.
+# Purpose:     This module is the communication  and data manager to connect to 
+#              Arduino to send the control request and fetch the potentiometer 
+#              data.
 #
 # Author:      Yuancheng Liu
 #
-# Created:     2023/06/13
-# Version:     v0.1.2
-# Copyright:   Copyright (c) 2023 Singapore National Cybersecurity R&D Lab LiuYuancheng
-# License:     MIT License
+# Version:     v_0.1
+# Created:     2023/09/21
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License  
 #-----------------------------------------------------------------------------
 
 import time
