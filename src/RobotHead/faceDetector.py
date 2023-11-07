@@ -1,6 +1,61 @@
 
 import time
+import threading
+import udpCom
+
 import cv2
+
+UDP_PORT = 3004
+
+class connectionHandler(threading.Thread):
+
+    def __init__(self, parent) -> None:
+        threading.Thread.__init__(self)
+        self.parent = parent
+        self.server = udpCom.udpServer(None, UDP_PORT)
+        #self.server.setBufferSize(bufferSize=gv.BUF_SZ)
+
+    #-----------------------------------------------------------------------------
+    def run(self):
+        print("Start the trojanReceiverMgr.")
+        print("Start the UDP echo server listening port [%s]" % str(UDP_PORT))
+        self.server.serverStart(handler=self.cmdHandler)
+    
+    #-----------------------------------------------------------------------------
+    def parseIncomeMsg(self, msg):
+        """ Split the trojan connection's control cmd to:
+            - reqKey: request key which idenfiy the action category.
+            - reqType: request type which detail action type.
+            - reqData: request data which will be used in the action.
+        """
+        reqKey = reqType = reqData = None
+        try:
+            if isinstance(msg, bytes): msg = msg.decode('utf-8')
+            reqKey, reqType, reqData = msg.split(';', 2)
+            return (reqKey.strip(), reqType.strip(), reqData)
+        except Exception as err:
+            print('The incoming message format is incorrect, ignore it.')
+            print(err)
+            return (reqKey, reqType, reqData)
+        
+
+    #-----------------------------------------------------------------------------
+    def cmdHandler(self, msg):
+        """ The trojan report handler method passed into the UDP server to handle the 
+            incoming messages.
+        """
+        if isinstance(msg, bytes): msg = msg.decode('utf-8')
+        if msg == '': return None
+        
+        # Reply tojan connection accept
+        resp = 'FD;result;'
+        result = 0
+        reqKey, reqType, data = self.parseIncomeMsg(msg)
+        if reqKey == 'FD':
+            if self.parent.getDetectionResult():
+                result = 1
+        resp += str(result)
+        return resp
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
@@ -22,10 +77,13 @@ class faceDetector(object):
             self.eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml")
         self.terminate = False
 
+        connHandler = connectionHandler(self)
+        connHandler.start()
+
     #-----------------------------------------------------------------------------   
     def run(self):
         while not self.terminate:
-            print("start")
+            #print("start")
             success, img = self.cap.read()
             imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -59,16 +117,12 @@ class faceDetector(object):
     #-----------------------------------------------------------------------------   
     def getDetectionResult(self):
         count = self.faceDetResult.count(1)
-        if count > 7: 
-            print("detect a face ")
-        else:
-            print("not detect")
-        return 
+        return count > 7
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 def main(mode):
-    detector = faceDetector(None, frameInterval=0.1, )
+    detector = faceDetector(None, frameInterval=0.1)
     detector.run()
 
 #-----------------------------------------------------------------------------
