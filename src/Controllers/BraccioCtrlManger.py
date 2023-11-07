@@ -51,7 +51,7 @@ class CtrlManager(object):
         return not self.taskQueue.empty()
 
     def getConnection(self):
-        if self.connector: return self.isConnected()
+        if self.connector: return self.connector.isConnected()
         return False
      
     def stop(self):

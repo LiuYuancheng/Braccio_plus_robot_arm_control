@@ -24,7 +24,7 @@ dirpath = os.path.dirname(__file__)
 print("Current source code location : %s" % dirpath)
 APP_NAME = 'Barccio Serial Controller'
 
-TOPDIRS = 'src'
+TOPDIR = 'src'
 LIBDIR = 'lib'
 CONFIG_FILE_NAME = 'BraccioConfig.txt'
 
@@ -34,18 +34,14 @@ BGIMG_PATH = os.path.join(dirpath, IMG_FD, "background.png")
 SCE_FD = os.path.join(dirpath, 'Scenarios')
 
 #-----------------------------------------------------------------------------
-# Init the logger:
 # find the lib directory
-for topdir in TOPDIRS:
-    idx = dirpath.find(topdir)
-    gTopDir = dirpath[:idx + len(topdir)] if idx != -1 else dirpath   # found it - truncate right after TOPDIR
-    # Config the lib folder 
-    gLibDir = os.path.join(gTopDir, LIBDIR)
-    if os.path.exists(gLibDir):
-        print("Import all the lib-module from folder : %s" %str(gLibDir))
-        sys.path.insert(0, gLibDir)
-        break
-
+idx = dirpath.find(TOPDIR)
+gTopDir = dirpath[:idx + len(TOPDIR)] if idx != -1 else dirpath   # found it - truncate right after TOPDIR
+# Config the lib folder 
+gLibDir = os.path.join(gTopDir, LIBDIR)
+if os.path.exists(gLibDir):
+    sys.path.insert(0, gLibDir)
+        
 #-----------------------------------------------------------------------------
 # Init the configure file loader.
 import ConfigLoader

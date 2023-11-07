@@ -48,9 +48,10 @@ class serialCom(Serial):
             print ('serialCom: the serial ports can be used : %s' % str(self.serialPort))
             try:
                 super().__init__(self.serialPort, baudRate, BYTE_SIZE, PARITY, STOP_BIT, timeout=TIME_OUT)
-                self.connected = False
+                self.connected = True
             except:
                 print("serialCom Error: serial port open error.")
+                self.connected = False
         time.sleep(0.01) # Sleep a short while to wait the I/O to be ready for different system.
 
     #-----------------------------------------------------------------------------

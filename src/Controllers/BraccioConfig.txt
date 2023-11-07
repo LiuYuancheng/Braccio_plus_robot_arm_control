@@ -1,0 +1,13 @@
+# This is the config file template for the module <BraccioController.py>
+# Setup the paramter with below format (every line follows <key>:<val> format, the
+# key can not be changed):
+
+#-----------------------------------------------------------------------------
+# Test mode:
+# True: use the simulation data without currect to the PLC module.
+# False: connect to PLC via modbus TCP, fetch and set the PLC real state.
+TEST_MD:False
+
+#-----------------------------------------------------------------------------
+COM_PORT:COM3
+COM_RATE:9600

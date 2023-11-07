@@ -32,7 +32,7 @@ class UIFrame(wx.Frame):
         self.SetBackgroundColour(wx.Colour(200, 210, 200))
         #self.SetTransparent(gv.gTranspPct*255//100)
         self.SetIcon(wx.Icon(gv.ICO_PATH))
-        self.commMgr = mgr.CtrlManager(self, None)
+        self.commMgr = mgr.CtrlManagerSerial(gv.gComPort, baudRate=gv.gbaudRate)
         # Build UI sizer
         self.angles = [None]*6
         self.connected = False
