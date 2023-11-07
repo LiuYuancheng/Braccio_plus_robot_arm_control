@@ -2,19 +2,18 @@
 #-----------------------------------------------------------------------------
 # Name:        BraccioCtrlManger.py
 #
-# Purpose:     This module is the communication  and data manager to connect to 
-#              Arduino to send the control request and fetch the potentiometer 
-#              data.
+# Purpose:     This module is the data manager module also used for handling 
+#              the serial communication ( send the control request to Arduino and 
+#              and fetch the potentiometer data).
 #
 # Author:      Yuancheng Liu
 #
 # Version:     v_0.1
-# Created:     2023/09/21
+# Created:     2023/11/03
 # Copyright:   Copyright (c) 2023 LiuYuancheng
 # License:     MIT License  
 #-----------------------------------------------------------------------------
 
-import time
 from queue import Queue
 import serialCom
 import BraccioCtrlGlobal as gv
@@ -28,51 +27,63 @@ RST_TAG = 'RST'
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 class CtrlManager(object):
-    """ The data manager is a module running parallel with the main thread to 
-        connect to PLCs to do the data communication with modbus TCP.
-    """
-    def __init__(self, parent, comInfo) -> None:
-        self.connector = serialCom.serialCom(None, serialPort='COM3',baudRate=9600)
+    """ Control manager parent class"""
+
+    def __init__(self, maxQsz=MAX_QSZ) -> None:
+        self.connector = None
         self.taskQueue = Queue(maxsize=MAX_QSZ)
-        self.connected = self.connector.connected
+
+    def _enqueueTask(self, taskStr):
+        if self.taskQueue.full():
+            print("Tasks queue full, can not add cmd: %s" % str(taskStr))
+            return
+        self.taskQueue.put(taskStr)
+
+    def _dequeuTask(self):
+        return None if self.taskQueue.empty() else self.taskQueue.get_nowait()
+
+    def addTasks(self, tasklist):
+        """ Add the input tasks string list into the tasks queue."""
+        for cmd in tasklist:
+            self._enqueueTask(cmd)
+
+    def hasQueuedTask(self):
+        return not self.taskQueue.empty()
+
+    def getConnection(self):
+        if self.connector: return self.isConnected()
+        return False
+     
+    def stop(self):
+        if self.connector: self.connector.close()
+
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+class CtrlManagerSerial(CtrlManager):
+    """ Control manager used for serial communication. """
+    def __init__(self, serialPort, baudRate=9600, maxQsz=MAX_QSZ) -> None:
+        super().__init__(maxQsz)
+        self.connector = serialCom.serialCom(serialPort=serialPort, baudRate=baudRate)
         self.motorAngles = [None]*6
-        if self.connected:
-            print("Linked to the Braccio robot successfully")
+        if self.connector and self.connector.isConnected():
+            print("Connected to the Braccio robot with port %s successfully" %str(self.connector.getPortVal()))
         else:
             print("Error: serical port under usage.")
 
     #-----------------------------------------------------------------------------
-    def _sendCommCmd(self, cmdStr):
-        if not self.connected: return False
-        try:
-            cmd = cmdStr.encode(gv.STR_DECODE) if isinstance(cmdStr, str) else cmdStr
-            self.connector.write(cmd)
-            return True
-        except Exception as err:
-            print("Err: [ send cmd ] connection lose.")
-            if gv.DEBUG: print("Error detail: %s" %str(err))
-            self.connected = False
-            self.motorAngles = [None]*6
-            return False
+    def addMotorMovTask(self, motorKey, motoVal):
+        self.addTasks((MMV_TAG+str(motorKey)+str(motoVal),))
 
     #-----------------------------------------------------------------------------
-    def _readCommData(self):
-        if not self.connected: return False
-        try:
-            data = self.connector.readline()
-            return data.decode(gv.STR_DECODE)
-        except Exception as err:
-            print("Err: [ read cmd ] connection lose.")
-            if gv.DEBUG: print("Error detail: %s" %str(err))
-            self.connected = False
-            self.motorAngles = [None]*6
-            return None
+    def addRestTask(self):
+        self.addTasks((RST_TAG,))
 
     #-----------------------------------------------------------------------------
     def fetchMotorPos(self):
+        if not self.connector.isConnected(): return None
         cmdStr = POS_TAG
-        if self._sendCommCmd(cmdStr):
-            data = self._readCommData()
+        if self.connector.sendStr(cmdStr):
+            data = self.connector.receiveStr()
             if data == '' or data is None:return None
             if POS_TAG in data:
                 data = data.split(':')[1]
@@ -80,47 +91,31 @@ class CtrlManager(object):
         else:
             self.motorAngles = [None]*6
 
-    def getConnection(self):
-        return self.connected
-
+    #-----------------------------------------------------------------------------
     def getModtorPos(self):
         return self.motorAngles 
     
     #-----------------------------------------------------------------------------
     def movMotor(self, motorKey, motoVal):
+        """Send the motor move command immediately."""
         cmd = MMV_TAG+str(motorKey)+str(motoVal)
-        self._sendCommCmd(cmd)
+        self.connector.sendStr(cmd)
 
     #-----------------------------------------------------------------------------
     def resetPos(self):
-        cmd = RST_TAG
-        self._sendCommCmd(cmd)
+        """Send the reset command immediately."""
+        self.connector.sendStr(RST_TAG)
 
     #-----------------------------------------------------------------------------
     def stop(self):
         if self.connector: self.connector.close()
 
     #-----------------------------------------------------------------------------
-    def hasQueuedTask(self):
-        return not self.taskQueue.empty()
-
-    #-----------------------------------------------------------------------------
     def runQueuedTask(self):
-        if self.taskQueue.empty(): return False
-        cmd = self.taskQueue.get()
-        print("Run task: %s" %str(cmd))
-        return self._sendCommCmd(cmd)
+        cmd = self._dequeuTask()
+        if not cmd is None: 
+            print("Run task: %s" %str(cmd))
+            return self.connector.sendStr(cmd)
 
     #-----------------------------------------------------------------------------
-    def addTasks(self, tasklist):
-        for cmd in tasklist:
-            if self.taskQueue.full():
-                print("Task queue full, can not add cmd: %s" %str(cmd))
-                continue
-            self.taskQueue.put(cmd)
     
-    def addMotorMovTask(self, motorKey, motoVal):
-        self.addTasks((MMV_TAG+str(motorKey)+str(motoVal),))
-    
-    def addRestTask(self):
-        self.addTasks((RST_TAG,))

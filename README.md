@@ -1,8 +1,8 @@
 # Braccio_Plus_Robot_Arm_Controller
-The robot arms are widely used in the different kinds of Industry 4.0 scenario such as create smart factories with the interconnection of systems that can exchange data, integrate the entire production chain and make decentralized decisions. We want to create a robot arm control software ( with UI ) which allows the user can remote control the [Braccio++ Robot Arm](https://store.arduino.cc/products/braccioplusplus) via Serial port, UDP or TCP and let the robot do some complex actions sequence ( such as grab a box and transfer the boxes on to canvas conveyer). The program is designed and implemented for below purpose : 
+The robot arms are widely used in the different kinds of Industry 4.0 scenario such as create smart factories with the interconnection of systems that can exchange data, integrate the entire production chain and make decentralized decisions. We want to create a simple robot arm control software ( with UI ) which allows the user can remote control the [Braccio++ Robot Arm](https://store.arduino.cc/products/braccioplusplus) via Serial port, UDP or TCP and let the robot arm do some complex actions sequence ( such as grab a box and transfer the boxes on to canvas conveyer). The program is designed and implemented for below purpose : 
 
 - **Testing** : For user who wants to try, learn and test their Braccio++ robot arm. 
-- **Education** : For ICS / IOT course  instructor to show robot arm usage cases or use for robot arm related class hands on demo/lab/assignment.  
+- **Education** : For ICS / IOT course  instructor to show robot arm usage cases or use for robot / auto-control related class hands on demo/lab/assignment.  
 - **Development/Demo** : For people who wants to build more complex scenario such as a smart factories model for demo and research. 
 
 [TOC]
@@ -18,7 +18,7 @@ The robot arms are widely used in the different kinds of Industry 4.0 scenario s
 
 ##### Braccio Plus Robot Arm Controller Introduction 
 
-The Braccio_Plus_Robot_Arm_Controller provides the Arduino firmware and UI based controller program for user to remote  control the Braccio ++ Robot Arm via serial port, UDP or TCP and let the robot do some complex actions/tasks. This is a example to let the robot arm to execute a box transfer task ( grab a small box and put it into a bigger box ) :
+The Braccio_Plus_Robot_Arm_Controller provides the Arduino firmware and UI based controller program for user to remote control the Braccio ++ Robot Arm via serial port, UDP or TCP and let the robot do some complex actions/tasks. This is a example to let the robot arm to execute a box transfer task ( grab a small box and put it into a bigger box ) :
 
  ![](doc/img/grabbox.gif)
 
@@ -68,7 +68,7 @@ The user interface design detail is shown below:
 
 ![](doc/img/ui_design.png)
 
-The user's control requests will be put in controller's tasks manager's action queue and send to the Braccio ++ robot arm in sequence, so the user can dynamically change the motor angle when the arm is moving, the arm finished one action, it will send back the action finished response, then the controller will dequeue a new task and send to the Braccio ++ robot arm ( until no new tasks in the action queue). If the user pressed the reset button, the tasks queue will be cleared immediately and the program will send the reset command to the Braccio ++ robot arm.  For the robot arm position monitoring, each arm parts' angle and potentiometer reading will be displayed on the related arm part's control panel. 
+The user's control requests will be put in controller's tasks manager's action queue and send to the Braccio ++ robot arm in FIFO  sequence, so the user can dynamically change the motor angle when the arm is moving, the arm finished one action, it will send back the action finished response, then the controller will dequeue a new task and send to the Braccio ++ robot arm ( until no new tasks in the action queue). If the user pressed the reset button, the tasks queue will be cleared immediately and the program will send the reset command to the Braccio ++ robot arm.  For the robot arm position monitoring, each arm parts' angle and potentiometer reading will be displayed on the related arm part's control panel. 
 
 The user action, controller state and Braccio ++ firmware execution state timing UML diagram is shown below:
 
