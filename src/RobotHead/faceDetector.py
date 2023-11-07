@@ -38,13 +38,13 @@ class connectionHandler(threading.Thread):
             print(err)
             return (reqKey, reqType, reqData)
         
-
     #-----------------------------------------------------------------------------
     def cmdHandler(self, msg):
         """ The trojan report handler method passed into the UDP server to handle the 
             incoming messages.
         """
         if isinstance(msg, bytes): msg = msg.decode('utf-8')
+        print("incoming message: %s" %str(msg))
         if msg == '': return None
         
         # Reply tojan connection accept

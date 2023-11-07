@@ -23,6 +23,7 @@ class PanelImge(wx.Panel):
         wx.Panel.__init__(self, parent, size=panelSize)
         self.panelSize = panelSize
         self.sleepFlg = True
+        self.toggle = False
         self.sleeps = [wx.Bitmap(gv.SLP_1_IMG, wx.BITMAP_TYPE_ANY),
                        wx.Bitmap(gv.SLP_2_IMG, wx.BITMAP_TYPE_ANY),
                        wx.Bitmap(gv.SLP_3_IMG, wx.BITMAP_TYPE_ANY)]
@@ -43,8 +44,26 @@ class PanelImge(wx.Panel):
         else:
             bm = self.wakes[self.count%2]
         dc.DrawBitmap(bm, 0, 0)
-        dc.SetPen(wx.Pen('RED'))
-        dc.DrawText('This is a sample image', w//2, h//2)
+        
+        dc.SetFont(wx.Font(18, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+        dc.SetTextForeground(wx.Colour('GREEN'))
+        displayStr= ''
+        if self.sleepFlg:
+            if self.toggle:
+                displayStr = 'I am sleeping...zzzzz'
+            else:
+                displayStr = 'I will wake up if the camera keep detect your face during 2 Sec.'
+        else:
+            if self.toggle:
+                displayStr = 'Hello! I see you ^_^ '
+            else:
+                displayStr = 'I will demo my arm movement now. '
+
+        dc.DrawText(displayStr, 10, h-50)
+
+    def setSleepFlg(self, val):
+        self.sleepFlg = val == '0'
+
 
 #--PanelImge--------------------------------------------------------------------
     def _scaleBitmap(self, bitmap, width, height):
@@ -77,7 +96,8 @@ class PanelImge(wx.Panel):
             will set the self update flag.
         """
         self.count += 1
-        self.Refresh(False)
+        self.toggle = not self.toggle
+        self.Refresh(True)
         self.Update()
 
 #-----------------------------------------------------------------------------

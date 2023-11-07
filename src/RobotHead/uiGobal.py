@@ -32,7 +32,7 @@ LOOK_R_IMG = os.path.join(dirpath, IMG_FD, "look_right.png")
 #-------<GLOBAL VARIABLES (start with "g")>------------------------------------
 # VARIABLES are the built in data type.
 gTranspPct = 70     # Windows transparent percentage.
-gUpdateRate = 1     # main frame update rate 1 sec.
+gUpdateRate = 2     # main frame update rate 1 sec.
 
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
 iMainFrame = None   # MainFrame.
