@@ -13,12 +13,17 @@
 # Copyright:   Copyright (c) 2023 LiuYuancheng
 # License:     MIT License  
 #-----------------------------------------------------------------------------
-
+import os 
+import json
 from queue import Queue
+import threading
 import serialCom
+import udpCom
 import BraccioCtrlGlobal as gv
 
-MAX_QSZ = 20
+UDP_PORT = 3005
+
+MAX_QSZ = 50
 
 POS_TAG = 'POS'
 MMV_TAG = 'MOV'
@@ -119,3 +124,60 @@ class CtrlManagerSerial(CtrlManager):
 
     #-----------------------------------------------------------------------------
     
+class connectionHandler(threading.Thread):
+
+    def __init__(self, parent) -> None:
+        threading.Thread.__init__(self)
+        self.parent = parent
+        self.server = udpCom.udpServer(None, gv.gHostPort)
+        #self.server.setBufferSize(bufferSize=gv.BUF_SZ)
+        self.tasksList = []
+        actConfigPath = os.path.join(gv.SCE_FD, 'demo.json')
+        if os.path.exists(actConfigPath):
+            with open(actConfigPath) as json_file:
+                self.tasksList = json.load(json_file)
+                print("loaded the demo scenario")
+
+    #-----------------------------------------------------------------------------
+    def run(self):
+        print("Start the trojanReceiverMgr.")
+        print("Start the UDP echo server listening port [%s]" % str(UDP_PORT))
+        self.server.serverStart(handler=self.cmdHandler)
+    
+    #-----------------------------------------------------------------------------
+    def parseIncomeMsg(self, msg):
+        """ Split the trojan connection's control cmd to:
+            - reqKey: request key which idenfiy the action category.
+            - reqType: request type which detail action type.
+            - reqData: request data which will be used in the action.
+        """
+        reqKey = reqType = reqData = None
+        try:
+            if isinstance(msg, bytes): msg = msg.decode('utf-8')
+            reqKey, reqType, reqData = msg.split(';', 2)
+            return (reqKey.strip(), reqType.strip(), reqData)
+        except Exception as err:
+            print('The incoming message format is incorrect, ignore it.')
+            print(err)
+            return (reqKey, reqType, reqData)
+        
+    #-----------------------------------------------------------------------------
+    def cmdHandler(self, msg):
+        """ The trojan report handler method passed into the UDP server to handle the 
+            incoming messages.
+        """
+        if isinstance(msg, bytes): msg = msg.decode('utf-8')
+        print("incoming message: %s" %str(msg))
+        if msg == '': return None
+        resp = "busy"
+        if msg == 'demo' and gv.iCtrlManger :
+            if not gv.iCtrlManger.hasQueuedTask():
+                if self.tasksList and len(self.tasksList) > 0:
+                    print("Execute scenario: demo.json")
+                    for action in self.tasksList:
+                        if action['act'] == 'RST':
+                            gv.iCtrlManger.addRestTask()
+                        elif action['act'] == 'MOV':
+                            gv.iCtrlManger.addMotorMovTask(action['key'], action['val'])
+                    resp = "ready"
+        return resp

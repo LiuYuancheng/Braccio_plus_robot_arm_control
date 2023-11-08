@@ -33,6 +33,7 @@ class UIFrame(wx.Frame):
         #self.SetTransparent(gv.gTranspPct*255//100)
         self.SetIcon(wx.Icon(gv.ICO_PATH))
         self.commMgr = mgr.CtrlManagerSerial(gv.gComPort, baudRate=gv.gbaudRate)
+        gv.iCtrlManger = self.commMgr
         # Build UI sizer
         self.angles = [None]*6
         self.connected = False
@@ -53,6 +54,10 @@ class UIFrame(wx.Frame):
         self.timer.Start(PERIODIC)  # every 500 ms
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
+
+        if gv.gHostAct:
+            gv.iconnHandler = mgr.connectionHandler(self)
+            gv.iconnHandler.start()
 
 #--UIFrame---------------------------------------------------------------------
     def _buidUISizer(self):

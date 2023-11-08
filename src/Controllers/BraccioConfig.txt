@@ -9,5 +9,11 @@
 TEST_MD:False
 
 #-----------------------------------------------------------------------------
+# Define the Arduino serial communication information.
 COM_PORT:COM3
 COM_RATE:9600
+
+#-----------------------------------------------------------------------------
+# define the remote UDP host information
+UDP_HOST:True
+UDP_PORT:3003

@@ -63,5 +63,10 @@ gComPort = CONFIG_DICT['COM_PORT']
 gbaudRate = CONFIG_DICT['COM_RATE']
 
 gUpdateRate = 3     # main frame update rate 1 sec.
+gHostAct = CONFIG_DICT['UDP_HOST']
+gHostPort = int(CONFIG_DICT['UDP_PORT'])
+
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
 iMainFrame = None   # MainFrame.
+iCtrlManger = None
+iconnHandler = None

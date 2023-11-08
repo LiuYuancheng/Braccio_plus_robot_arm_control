@@ -45,6 +45,7 @@ class UIFrame(wx.Frame):
         self.Bind(wx.EVT_TIMER, self.periodic)
         self.timer.Start(PERIODIC)  # every 500 ms
         self.client = udpCom.udpClient(('127.0.0.1', 3004))
+        self.braccioClient = udpCom.udpClient(('127.0.0.1', 3003))
 
 
 #--UIFrame---------------------------------------------------------------------
@@ -96,12 +97,16 @@ class UIFrame(wx.Frame):
                         result = self.parseIncomeMsg(resp)
                         gv.iImagePanel.setSleepFlg(result[-1])
                         if result[-1] == '1': self.demoingFlg = True
+                    if self.demoingFlg:
+                        resp = self.braccioClient.sendMsg('demo', resp=True)
+                        print("robot demo start")
                 else:
                     self.demoTcount -= 1
                     if self.demoTcount == 0:
                         self.demoTcount = DEMO_TIME
                         self.demoingFlg = False
                         print("reset demo")
+
 
             gv.iImagePanel.updateDisplay()
 
