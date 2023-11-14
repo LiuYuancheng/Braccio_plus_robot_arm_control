@@ -2,7 +2,7 @@
 
 We want to create a simple robot emulation system which can interactive with the environment and human to simulate the smart  robot or smart smart manufacturing process. The robot system will use the classic IoT distribution framework. Each components are linked by wireless connection. The whole system contents 4 main parts : 
 
-- Several eye/sense components ( camera, microphone and sensors ) . 
+- Several eye / sense components ( camera, microphone and sensors ) . 
 - One or more face / info-broadcast components (screen and speaker) . 
 - One center controller / decision maker. 
 - Several Braccio_Plus_Robot_Arm with the controllers. 
