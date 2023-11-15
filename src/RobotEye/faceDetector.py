@@ -1,4 +1,18 @@
 
+#!/usr/bin/python
+#-----------------------------------------------------------------------------
+# Name:        faceDetector.py
+#
+# Purpose:     
+#
+# Author:      Yuancheng Liu
+#
+# Version:     v_0.1
+# Created:     2023/09/21
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License  
+#-----------------------------------------------------------------------------
+
 import time
 import threading
 import udpCom
