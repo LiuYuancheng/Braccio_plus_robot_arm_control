@@ -3,12 +3,14 @@
 # -----------------------------------------------------------------------------
 # Name:        camDetector.py
 #
-# Purpose:
+# Purpose:     This module will open the camera to capture the video (pic) the 
+#              use openCV to detect different items (such as face, qr code). All
+#              the detector class are inheritted from the parent class <camDetector>   
 #
 # Author:      Yuancheng Liu
 #
 # Version:     v_0.1
-# Created:     2023/09/21
+# Created:     2023/11/15
 # Copyright:   Copyright (c) 2023 LiuYuancheng
 # License:     MIT License
 # -----------------------------------------------------------------------------
@@ -19,76 +21,117 @@ import time
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class camDetector(object):
+    """ Parent detector class open the camera and capture the picture."""
 
-    def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(640, 480)) -> None:
+    def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(640, 480)) -> None:
+        """ Init example: detector = camDetector(camIdx=1, imgInt=0.1)
+            Args:
+                camIdx (int, optional): Camera index. Defaults to 0.
+                showUI (bool, optional): Whether show the cv2's result window. Defaults to False.
+                imgInt (_type_, optional): Camera image capture interval. Defaults to 0.01
+                imgSize (tuple, optional): Image resolution. Defaults to (640, 480).
+        """
         self.camIdx = camIdx
         self.showUI = showUI
-        self.imgInt = 0 if imgInt is None else imgInt 
+        self.imgInt = imgInt
         self.imgSize = imgSize
         self.windowName = 'Cam:%s' % str(self.camIdx)
         try:
-            print("Start to try to open the device camera.")
+            print("Start to open the device camera...")
             self.cap = cv2.VideoCapture(camIdx)
             self.cap.set(3, self.imgSize[0])
             self.cap.set(4, self.imgSize[1])
         except Exception as err:
             print("Error to open the camera. error info: %s" % str(err))
             return None
+        print("- Camera ready.")
         self.cvDetector = None
         self._initCvDetector()
         self.terminate = False
+        print("Detector init finished.")
 
+    # -----------------------------------------------------------------------------
     def _initCvDetector(self):
+        """ Init different item detector here, this function will be over overwritten
+            by sub-classes.  
+        """
         return None
 
-    def setDisplayInfo(self, displayFlg, windowName):
-        self.showUI = displayFlg
-        self.windowName = windowName
+    def _processImg(self, img):
+        """ function to process the input cv.img. Return the processed cv.img."""
+        return img
 
-    def setDisplayInterval(self, interval):
-        self.imgInt = interval
-
+    # -----------------------------------------------------------------------------
     def run(self):
+        """ Main loop to capture and 
+        """
         while not self.terminate:
             success, img = self.cap.read()
             if success:
-                img = self.processImg(img)
-                if self.showUI:
-                    cv2.imshow(self.windowName, img)
+                img = self._processImg(img)
+                if self.showUI: cv2.imshow(self.windowName, img)
             else:
                 print("Error: capture image from camera failed.")
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
+            if cv2.waitKey(10) & 0xFF == ord('q'): self.stop()
             time.sleep(self.imgInt)
 
-    def processImg(self, img):
-        return img
+    # -----------------------------------------------------------------------------
+    def setDisplayInfo(self, displayFlg, windowName):
+        """ Set whether show the cv result window and the window name.
+            Args:
+                displayFlg (bool): flag to identify whether show the cv2 window. set to 
+                    None will not change the orignal setting.
+                windowName (str): Window title name. Set to Noe will not change the 
+                    orignal setting.
+        """
+        if not displayFlg is None: self.showUI = displayFlg
+        if not windowName is None : self.windowName = str(windowName) 
 
+    # -----------------------------------------------------------------------------
+    def setCapInterval(self, interval):
+        self.imgInt = float(interval)
+
+    # -----------------------------------------------------------------------------
     def stop(self):
         self.terminate = True
+        cv2.destroyWindow(self.windowName)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class faceDetector(camDetector):
+    """ Detect multiple faces with/without eyes. """
 
-    def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(640, 480), detectEye=False) -> None:
+    def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(640, 480), detectEye=False) -> None:
+        """ Args:
+                camIdx, showUI, imgInt, imgSize : refer to parent class <camDetector>
+                detectEye (bool, optional): flag to identify whehter detect 
+                    human's eyes. Defaults to False.
+        """
         self.detectEye = detectEye
-        self.faceDetResult = [False]*10
+        self.faceDetResult = [False]*10 # last 10 frame detection result record.
+        self.lastFcPosList = None   # last faces detected position.
         super().__init__(camIdx, showUI, imgInt, imgSize)
         
+    # -----------------------------------------------------------------------------
     def _initCvDetector(self):
+        """ Init the face and the eyes detectors."""
         # import cascade file for facial recognition
         self.faceCascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        # import cascade file for eyes recognition
         if self.detectEye:
             self.eyeCascade = cv2.CascadeClassifier(
                 cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml")
 
+    # -----------------------------------------------------------------------------
     def _archiveDetectRst(self, rst):
+        if rst is None: return
         self.faceDetResult.pop(0)
-        self.faceDetResult.append(int(rst)>0)
+        self.faceDetResult.append(int(len(rst))>0)
+        self.lastFcPosList = rst
 
-    def processImg(self, img):
+    # -----------------------------------------------------------------------------
+    def _processImg(self, img):
         # Getting corners around the face
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # 1.3 = scale factor, 5 = minimum neighbor
@@ -96,7 +139,7 @@ class faceDetector(camDetector):
         # drawing bounding box around face
         for (x, y, w, h) in faces:
             img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        self._archiveDetectRst(len(faces))
+        self._archiveDetectRst(faces)
         if self.detectEye:
             # detecting eyes
             eyes = self.eyeCascade.detectMultiScale(imgGray)
@@ -110,21 +153,30 @@ class faceDetector(camDetector):
         count = self.faceDetResult.count(True)
         return count > threshold
 
+    # -----------------------------------------------------------------------------
+    def getLastDectPos(self):
+        return self.lastFcPosList
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 class qrcdDetector(camDetector):
-    
-    def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(1600, 900), decodeFlg=False) -> None:
+    """Detect multiple QR code in thte camerea. """
+    def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(1600, 900), decodeFlg=False) -> None:
+        """ Args:
+                camIdx, showUI, imgInt, imgSize : refer to parent class <camDetector>
+                imgSize (tuple, optional): _description_. Defaults to (1600, 900).
+                decodeFlg (bool, optional): flag to identify whether decode qr code information. Defaults to False.
+        """
         self.decodeFlg = decodeFlg
         self.detectResult = [False]*10
         self.decodeInfo = None
+        self.lastCDPosList = None   # last QR code detected position.
         super().__init__(camIdx, showUI, imgInt, imgSize)
 
     def _initCvDetector(self):
         self.qcd = cv2.QRCodeDetector()
 
-    def processImg(self, img):
+    def _processImg(self, img):
         # Getting corners around the face
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if self.decodeFlg:
@@ -166,4 +218,4 @@ def main(mode):
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
-    main(2)
+    main(1)
