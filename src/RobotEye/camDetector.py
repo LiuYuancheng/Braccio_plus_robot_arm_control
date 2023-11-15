@@ -23,17 +23,18 @@ class camDetector(object):
     def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(640, 480)) -> None:
         self.camIdx = camIdx
         self.showUI = showUI
-        self.imgInt = imgInt
+        self.imgInt = 0 if imgInt is None else imgInt 
         self.imgSize = imgSize
         self.windowName = 'Cam:%s' % str(self.camIdx)
         try:
+            print("Start to try to open the device camera.")
             self.cap = cv2.VideoCapture(camIdx)
             self.cap.set(3, self.imgSize[0])
             self.cap.set(4, self.imgSize[1])
         except Exception as err:
-            print("Error to open the camera. error info: %s" %str(err))
+            print("Error to open the camera. error info: %s" % str(err))
             return None
-        self.cvDetector = None 
+        self.cvDetector = None
         self._initCvDetector()
         self.terminate = False
 
@@ -66,73 +67,86 @@ class camDetector(object):
     def stop(self):
         self.terminate = True
 
-
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
-class faceDetector(object):
+class faceDetector(camDetector):
 
-    def __init__(self, parent, frameInterval=None,  detectEye=False, imageSize=(640, 480)) -> None:
-        self.parent = parent
+    def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(640, 480), detectEye=False) -> None:
         self.detectEye = detectEye
-        self.framInterval = frameInterval
-        print("Start to try to open the device camera.")
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(3, imageSize[0])
-        self.cap.set(4, imageSize[1])
-        self.faceDetResult = [0]*10
+        self.faceDetResult = [False]*10
+        super().__init__(camIdx, showUI, imgInt, imgSize)
+        
+    def _initCvDetector(self):
         # import cascade file for facial recognition
         self.faceCascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         if self.detectEye:
-            # if you want to detect any object for example eyes, use one more layer of classifier as below:
             self.eyeCascade = cv2.CascadeClassifier(
                 cv2.data.haarcascades + "haarcascade_eye_tree_eyeglasses.xml")
-        self.terminate = False
 
-        connHandler = connectionHandler(self)
-        connHandler.start()
+    def _archiveDetectRst(self, rst):
+        self.faceDetResult.pop(0)
+        self.faceDetResult.append(int(rst)>0)
 
-    # -----------------------------------------------------------------------------
-    def run(self):
-        while not self.terminate:
-            # print("start")
-            success, img = self.cap.read()
-            imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            # Getting corners around the face
-            # 1.3 = scale factor, 5 = minimum neighbor
-            faces = self.faceCascade.detectMultiScale(imgGray, 1.3, 5)
-            # drawing bounding box around face
-            self.faceDetResult.pop(0)
-
-            for (x, y, w, h) in faces:
-                img = cv2.rectangle(
-                    img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-            if len(faces) > 0:
-                self.faceDetResult.append(1)
-            else:
-                self.faceDetResult.append(0)
-
-            if self.detectEye:
-                # detecting eyes
-                eyes = self.eyeCascade.detectMultiScale(imgGray)
-                # drawing bounding box for eyes
-                for (ex, ey, ew, eh) in eyes:
-                    img = cv2.rectangle(
-                        img, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
-
-            cv2.imshow('face_detect', img)
-
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
-            time.sleep(self.framInterval)
-            # self.getDetectionResult()
+    def processImg(self, img):
+        # Getting corners around the face
+        imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # 1.3 = scale factor, 5 = minimum neighbor
+        faces = self.faceCascade.detectMultiScale(imgGray, 1.3, 5)
+        # drawing bounding box around face
+        for (x, y, w, h) in faces:
+            img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        self._archiveDetectRst(len(faces))
+        if self.detectEye:
+            # detecting eyes
+            eyes = self.eyeCascade.detectMultiScale(imgGray)
+            # drawing bounding box for eyes
+            for (ex, ey, ew, eh) in eyes:
+                img = cv2.rectangle(img, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
+        return img
 
     # -----------------------------------------------------------------------------
-    def getDetectionResult(self):
-        count = self.faceDetResult.count(1)
-        return count > 7
+    def getDetectionResult(self, threshold=7):
+        count = self.faceDetResult.count(True)
+        return count > threshold
+
+
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+class qrcdDetector(camDetector):
+    
+    def __init__(self, camIdx=0, showUI=False, imgInt=None, imgSize=(1600, 900), decodeFlg=False) -> None:
+        self.decodeFlg = decodeFlg
+        self.detectResult = [False]*10
+        self.decodeInfo = None
+        super().__init__(camIdx, showUI, imgInt, imgSize)
+
+    def _initCvDetector(self):
+        self.qcd = cv2.QRCodeDetector()
+
+    def processImg(self, img):
+        # Getting corners around the face
+        imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if self.decodeFlg:
+            ret_qr, decoded_info, points, _ = self.qcd.detectAndDecodeMulti(imgGray)
+            if ret_qr:
+                for s, p in zip(decoded_info, points):
+                    if s:
+                        print(s)
+                        color = (0, 255, 0)
+                    else:
+                        color = (0, 0, 255)
+                    img = cv2.polylines(img, [p.astype(int)], True, color, 8)
+            return img
+        else:
+            ret_qr, points = self.qcd.detectMulti(imgGray)
+            if ret_qr:
+                print(points)
+                color = (0, 0, 255)
+                if not points is None:
+                    for point in points:
+                        img = cv2.polylines(img, [point.astype(int)], True, color, 8)
+            return img
 
 
 #-----------------------------------------------------------------------------
@@ -140,9 +154,16 @@ class faceDetector(object):
 def main(mode):
     if mode == 0:
         detector = camDetector(imgInt=0.1)
-        detector. setDisplayInfo(True, "Camera")
+        detector.setDisplayInfo(True, "Camera")
         detector.run()
+    elif mode == 1:
+        detector = faceDetector(showUI=True, detectEye=True)
+        detector.run()
+    else:
+        detector = qrcdDetector(showUI=True)
+        detector.run()
+
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
-    main(0)
+    main(2)

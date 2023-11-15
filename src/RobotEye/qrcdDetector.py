@@ -9,9 +9,9 @@ cap = cv2.VideoCapture(camera_id)
 
 while True:
     ret, frame = cap.read()
-
+    imgGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     if ret:
-        ret_qr, decoded_info, points, _ = qcd.detectAndDecodeMulti(frame)
+        ret_qr, decoded_info, points, _ = qcd.detectAndDecodeMulti(imgGray)
         if ret_qr:
             for s, p in zip(decoded_info, points):
                 if s:
