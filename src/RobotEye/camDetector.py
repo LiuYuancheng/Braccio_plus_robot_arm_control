@@ -202,7 +202,7 @@ class qrcdDetector(camDetector):
                     img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
                     img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                     img = cv2.polylines(img, self.lastCDPos, True, color, 3)
-                self._archiveDetectRst(points)
+            self._archiveDetectRst(points)
             return img
         else:
             ret_qr, points = self.qcd.detectMulti(imgGray)
@@ -218,7 +218,7 @@ class qrcdDetector(camDetector):
                         img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
                         img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                         img = cv2.polylines(img, self.lastCDPos, True, color, 3)
-                    self._archiveDetectRst(points)
+            self._archiveDetectRst(points)
             return img
 
     # -----------------------------------------------------------------------------

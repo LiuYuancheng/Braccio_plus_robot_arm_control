@@ -32,7 +32,7 @@
     {
         "act": "MOV",
         "key": "grip",
-        "val": "160"
+        "val": "10"
     },
     {
         "act": "MOV",

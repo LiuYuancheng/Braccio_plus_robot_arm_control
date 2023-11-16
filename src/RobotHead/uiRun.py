@@ -20,7 +20,7 @@ import udpCom
 
 TEST_MD = False
 PERIODIC = 500      # update in every 500ms
-DEMO_TIME = 20
+DEMO_TIME = 16
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
@@ -47,7 +47,6 @@ class UIFrame(wx.Frame):
         self.timer.Start(PERIODIC)  # every 500 ms
         self.client = udpCom.udpClient(('127.0.0.1', 3004))
         self.braccioClient = udpCom.udpClient(('127.0.0.1', 3003))
-
 
 #--UIFrame---------------------------------------------------------------------
     def _buidUISizer(self):
@@ -100,6 +99,7 @@ class UIFrame(wx.Frame):
                     if self.demoTcount == 0:
                         self.demoTcount = DEMO_TIME
                         self.demoingFlg = False
+                        gv.iImagePanel.setSleepFlg('0')
                         print("reset demo")
 
             gv.iImagePanel.updateDisplay()
@@ -119,16 +119,25 @@ class UIFrame(wx.Frame):
     def qrCodeDetectDemo(self):
         msg = 'CD;pos;?'
         resp = self.client.sendMsg(msg, resp=True)
+        posType = 0 
         if not resp is None:
             result = self.parseIncomeMsg(resp)
-            if result[-1] == '':
+            # 
+            if result[-1] == '' or result[-1] == '0':
                 print("not detect any thing")
-            else: 
+            else:
+                gv.iImagePanel.setSleepFlg('1')
                 print("detect item at pos: %s" %str(result[-1]))
-            #gv.iImagePanel.setSleepFlg(result[-1])
-            #if result[-1] == '1': self.demoingFlg = Tr 
-        if self.demoingFlg:
-            resp = self.braccioClient.sendMsg('demo', resp=True)
+                boxPos = eval(result[-1])
+                if 200 < int(boxPos[0]) < 400:
+                    posType = 3
+                elif 400 <= int(boxPos[0]) < 700:
+                    posType = 2
+                self.demoingFlg = True
+
+        if self.demoingFlg and posType > 0:
+            demoStr = 'demo'+str(posType)
+            resp = self.braccioClient.sendMsg(demoStr, resp=True)
             print("robot demo start")
 
 #-----------------------------------------------------------------------------

@@ -79,7 +79,7 @@ class connectionHandler(threading.Thread):
                 resp = 'CD;pos;'
                 if self.parent.getDetectionResult(): 
                     result = str(self.parent.getQRcodePos())
-                resp += str(result)
+                    resp += str(result)
         return resp
 
 # -----------------------------------------------------------------------------

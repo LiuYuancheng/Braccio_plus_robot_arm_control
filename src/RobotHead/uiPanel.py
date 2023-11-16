@@ -52,7 +52,7 @@ class PanelImge(wx.Panel):
             if self.toggle:
                 displayStr = 'I am sleeping...zzzzz.zzz'
             else:
-                displayStr = 'I will wake up if the camera keep detect your in 2 Sec.'
+                displayStr = 'I will wake up if the camera keep detect face/item in 2 Sec.'
         else:
             if self.toggle:
                 displayStr = 'Hello! I see you ^_^ '
