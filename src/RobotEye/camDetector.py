@@ -17,6 +17,7 @@
 
 import cv2
 import time
+from statistics import mean 
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -38,9 +39,9 @@ class camDetector(object):
         self.windowName = 'Cam:%s' % str(self.camIdx)
         try:
             print("Start to open the device camera...")
-            self.cap = cv2.VideoCapture(camIdx)
-            self.cap.set(3, self.imgSize[0])
-            self.cap.set(4, self.imgSize[1])
+            self.cap = cv2.VideoCapture(camIdx, cv2.CAP_DSHOW)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.imgSize[0])
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.imgSize[1])
         except Exception as err:
             print("Error to open the camera. error info: %s" % str(err))
             return None
@@ -161,45 +162,71 @@ class faceDetector(camDetector):
 #-----------------------------------------------------------------------------
 class qrcdDetector(camDetector):
     """Detect multiple QR code in thte camerea. """
-    def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(1600, 900), decodeFlg=False) -> None:
+    def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(1200, 800), decodeFlg=False) -> None:
         """ Args:
                 camIdx, showUI, imgInt, imgSize : refer to parent class <camDetector>
-                imgSize (tuple, optional): _description_. Defaults to (1600, 900).
+                imgSize (tuple, optional): _description_. Defaults to (1200, 800).
                 decodeFlg (bool, optional): flag to identify whether decode qr code information. Defaults to False.
         """
         self.decodeFlg = decodeFlg
         self.detectResult = [False]*10
         self.decodeInfo = None
-        self.lastCDPosList = None   # last QR code detected position.
+        self.lastCDPos = None   # last QR code detected position.
+        self.lastQRCentPos = None
         super().__init__(camIdx, showUI, imgInt, imgSize)
 
     def _initCvDetector(self):
         self.qcd = cv2.QRCodeDetector()
 
+    # -----------------------------------------------------------------------------
     def _processImg(self, img):
         # Getting corners around the face
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.line(img, (self.imgSize[0]//2-10, self.imgSize[1]//2), 
+                       (self.imgSize[0]//2+10, self.imgSize[1]//2), (255, 0, 0), 3) 
+        img = cv2.line(img, (self.imgSize[0]//2, self.imgSize[1]//2-10), 
+                       (self.imgSize[0]//2, self.imgSize[1]//2+10), (255, 0, 0), 3) 
         if self.decodeFlg:
             ret_qr, decoded_info, points, _ = self.qcd.detectAndDecodeMulti(imgGray)
             if ret_qr:
                 for s, p in zip(decoded_info, points):
-                    if s:
-                        print(s)
-                        color = (0, 255, 0)
-                    else:
-                        color = (0, 0, 255)
-                    img = cv2.polylines(img, [p.astype(int)], True, color, 8)
+                    color = (0, 255, 0) if s else (0, 0, 255)
+                    self.lastCDPos = [p.astype(int)]
+                    self.decodeInfo = s
+                    xAvg, yAvg = self.getQRcodeCentPo()
+                    img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
+                    img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
+                    img = cv2.polylines(img, self.lastCDPos, True, color, 3)
             return img
         else:
             ret_qr, points = self.qcd.detectMulti(imgGray)
             if ret_qr:
-                print(points)
+                #print(points)
                 color = (0, 0, 255)
                 if not points is None:
                     for point in points:
-                        img = cv2.polylines(img, [point.astype(int)], True, color, 8)
+                        self.lastCDPos = [point.astype(int)]
+                        xAvg, yAvg = self.getQRcodeCentPo()
+                        img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
+                        img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
+                        img = cv2.polylines(img, self.lastCDPos, True, color, 3)
             return img
 
+    # -----------------------------------------------------------------------------
+    def getDetectionResult(self, threshold=7):
+        count = self.faceDetResult.count(True)
+        return count > threshold
+
+    def getQRcodeData(self):
+        return self.decodeInfo
+
+    def getQRCodePos(self):
+        return self.lastCDPos
+    
+    def getQRcodeCentPo(self):
+        xAvg = int(mean([int(pt[0]) for pt in self.lastCDPos[0]]))
+        yAvg = int(mean([int(pt[1]) for pt in self.lastCDPos[0]]))
+        return(xAvg, yAvg)
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
@@ -212,10 +239,9 @@ def main(mode):
         detector = faceDetector(showUI=True, detectEye=True)
         detector.run()
     else:
-        detector = qrcdDetector(showUI=True)
+        detector = qrcdDetector(imgInt=1, showUI=True)
         detector.run()
-
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
-    main(1)
+    main(3)
