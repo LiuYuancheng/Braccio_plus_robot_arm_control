@@ -63,13 +63,23 @@ class connectionHandler(threading.Thread):
         if msg == '': return None
         
         # Reply tojan connection accept
-        resp = 'FD;result;'
+        resp = ''
         result = 0
         reqKey, reqType, data = self.parseIncomeMsg(msg)
         if reqKey == 'FD':
-            if self.parent.getDetectionResult():
-                result = 1
-        resp += str(result)
+            resp = 'FD;result;'
+            if self.parent.getDetectionResult(): result = 1
+            resp += str(result)
+        elif reqKey == 'CD':
+            if reqType == 'result':
+                resp = 'CD;result;'
+                if self.parent.getDetectionResult(): result = 1
+                resp += str(result)
+            else:
+                resp = 'CD;pos;'
+                if self.parent.getDetectionResult(): 
+                    result = str(self.parent.getQRcodePos())
+                resp += str(result)
         return resp
 
 # -----------------------------------------------------------------------------
@@ -80,12 +90,14 @@ class robotEye(object):
         self.detector = None
         if mode == 0:
             print("Init the face detector...")
-            self.detector = camDetector.faceDetector(showUI=True, detectEye=False)
+            self.detector = camDetector.faceDetector(
+                showUI=True, detectEye=False)
             self.detector.setDisplayInfo(True, "Face Detection")
             print("Start the communication handler.")
-        else: 
-            self.detector = camDetector.qrcdDetector(imgInt=0.1, showUI=True, )
-        
+        else:
+            self.detector = camDetector.qrcdDetector(imgInt=0.1, showUI=True)
+            self.detector.setDisplayInfo(True, "QR-Code Detection")
+
         connHandler = connectionHandler(self)
         connHandler.start()
 
@@ -95,10 +107,13 @@ class robotEye(object):
     def getDetectionResult(self):
         return self.detector.getDetectionResult()
 
+    def getQRcodePos(self):
+        return self.detector.getQRcodeCentPo()
+
 def main(mode):
     gv.iMainFrame = robotEye(mode=mode)
     gv.iMainFrame.run()
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
-    main(3)
+    main(1)

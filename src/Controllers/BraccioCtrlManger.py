@@ -131,12 +131,28 @@ class connectionHandler(threading.Thread):
         self.parent = parent
         self.server = udpCom.udpServer(None, gv.gHostPort)
         #self.server.setBufferSize(bufferSize=gv.BUF_SZ)
-        self.tasksList = []
-        actConfigPath = os.path.join(gv.SCE_FD, 'demo.json')
+        # load face demo tasks list.
+        self.tasksList1 = []
+        actConfigPath = os.path.join(gv.SCE_FD, 'collectBox.json')
         if os.path.exists(actConfigPath):
             with open(actConfigPath) as json_file:
-                self.tasksList = json.load(json_file)
-                print("loaded the demo scenario")
+                self.tasksList1 = json.load(json_file)
+                print("loaded the face demo scenario")
+        # load grab near task list
+        self.tasksList2 = []
+        actConfigPath = os.path.join(gv.SCE_FD, 'grabNear.json')
+        if os.path.exists(actConfigPath):
+            with open(actConfigPath) as json_file:
+                self.tasksList2 = json.load(json_file)
+                print("loaded the grab near demo scenario")
+
+        # load grab far task list 
+        self.tasksList3 = []
+        actConfigPath = os.path.join(gv.SCE_FD, 'grabFar.json')
+        if os.path.exists(actConfigPath):
+            with open(actConfigPath) as json_file:
+                self.tasksList3 = json.load(json_file)
+                print("loaded the grab far demo scenario")
 
     #-----------------------------------------------------------------------------
     def run(self):
@@ -170,11 +186,16 @@ class connectionHandler(threading.Thread):
         print("incoming message: %s" %str(msg))
         if msg == '': return None
         resp = "busy"
-        if msg == 'demo' and gv.iCtrlManger :
+        if 'demo' in msg and gv.iCtrlManger :
+            tasksList = None 
+            if msg == 'demo1': tasksList = self.tasksList1
+            if msg == 'demo2': tasksList = self.tasksList2
+            if msg == 'demo3': tasksList = self.tasksList3
+
             if not gv.iCtrlManger.hasQueuedTask():
-                if self.tasksList and len(self.tasksList) > 0:
+                if tasksList and len(tasksList) > 0:
                     print("Execute scenario: demo.json")
-                    for action in self.tasksList:
+                    for action in tasksList:
                         if action['act'] == 'RST':
                             gv.iCtrlManger.addRestTask()
                         elif action['act'] == 'MOV':

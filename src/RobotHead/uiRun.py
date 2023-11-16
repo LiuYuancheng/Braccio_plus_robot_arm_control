@@ -20,7 +20,7 @@ import udpCom
 
 TEST_MD = False
 PERIODIC = 500      # update in every 500ms
-DEMO_TIME = 50
+DEMO_TIME = 20
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
@@ -38,6 +38,7 @@ class UIFrame(wx.Frame):
         self.SetSizer(self._buidUISizer())
         self.demoTcount = DEMO_TIME
         self.demoingFlg = False
+        self.demoType = 1
         # Set the periodic call back
         self.lastPeriodicTime = time.time()
         self.timer = wx.Timer(self)
@@ -90,16 +91,10 @@ class UIFrame(wx.Frame):
             self.lastPeriodicTime = now
             if not TEST_MD:
                 if not self.demoingFlg:
-                    msg = 'FD;check;?'
-                    resp = self.client.sendMsg(msg, resp=True)
-                    print("incoming message: %s" %str(resp))
-                    if not resp is None:
-                        result = self.parseIncomeMsg(resp)
-                        gv.iImagePanel.setSleepFlg(result[-1])
-                        if result[-1] == '1': self.demoingFlg = True
-                    if self.demoingFlg:
-                        resp = self.braccioClient.sendMsg('demo', resp=True)
-                        print("robot demo start")
+                    if self.demoType == 0:
+                        self.faceDetectionDemo()
+                    else:
+                        self.qrCodeDetectDemo()
                 else:
                     self.demoTcount -= 1
                     if self.demoTcount == 0:
@@ -107,8 +102,34 @@ class UIFrame(wx.Frame):
                         self.demoingFlg = False
                         print("reset demo")
 
-
             gv.iImagePanel.updateDisplay()
+
+    def faceDetectionDemo(self):
+        msg = 'FD;check;?'
+        resp = self.client.sendMsg(msg, resp=True)
+        print("incoming message: %s" %str(resp))
+        if not resp is None:
+            result = self.parseIncomeMsg(resp)
+            gv.iImagePanel.setSleepFlg(result[-1])
+            if result[-1] == '1': self.demoingFlg = True
+        if self.demoingFlg:
+            resp = self.braccioClient.sendMsg('demo1', resp=True)
+            print("robot demo start")
+
+    def qrCodeDetectDemo(self):
+        msg = 'CD;pos;?'
+        resp = self.client.sendMsg(msg, resp=True)
+        if not resp is None:
+            result = self.parseIncomeMsg(resp)
+            if result[-1] == '':
+                print("not detect any thing")
+            else: 
+                print("detect item at pos: %s" %str(result[-1]))
+            #gv.iImagePanel.setSleepFlg(result[-1])
+            #if result[-1] == '1': self.demoingFlg = Tr 
+        if self.demoingFlg:
+            resp = self.braccioClient.sendMsg('demo', resp=True)
+            print("robot demo start")
 
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
