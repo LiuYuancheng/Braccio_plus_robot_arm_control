@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 # Name:        camDetector.py
 #
-# Purpose:     This module will open the camera to capture the video (pic) the 
+# Purpose:     This module will open the camera to capture the video (pic) then 
 #              use openCV to detect different items (such as face, qr code). All
 #              the detector class are inheritted from the parent class <camDetector>   
 #
@@ -22,23 +22,23 @@ from statistics import mean
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class camDetector(object):
-    """ Parent detector class open the camera and capture the picture."""
+    """ Parent detector class: open the camera and capture the picture."""
 
     def __init__(self, camIdx=0, showUI=False, imgInt=0.01, imgSize=(640, 480)) -> None:
         """ Init example: detector = camDetector(camIdx=1, imgInt=0.1)
             Args:
                 camIdx (int, optional): Camera index. Defaults to 0.
                 showUI (bool, optional): Whether show the cv2's result window. Defaults to False.
-                imgInt (_type_, optional): Camera image capture interval. Defaults to 0.01
+                imgInt (float, optional): Camera image capture interval. Defaults to 0.01 sec.
                 imgSize (tuple, optional): Image resolution. Defaults to (640, 480).
         """
         self.camIdx = camIdx
         self.showUI = showUI
         self.imgInt = imgInt
         self.imgSize = imgSize
-        self.windowName = 'Cam:%s' % str(self.camIdx)
+        self.windowName = 'Cam : %s' % str(self.camIdx)
         try:
-            print("Start to open the device camera...")
+            print("Start to open the device camera ...")
             self.cap = cv2.VideoCapture(camIdx, cv2.CAP_DSHOW)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.imgSize[0])
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.imgSize[1])
@@ -46,6 +46,7 @@ class camDetector(object):
             print("Error to open the camera. error info: %s" % str(err))
             return None
         print("- Camera ready.")
+        # Init the detector.
         self.cvDetector = None
         self._initCvDetector()
         self.terminate = False
@@ -53,18 +54,20 @@ class camDetector(object):
 
     # -----------------------------------------------------------------------------
     def _initCvDetector(self):
-        """ Init different item detector here, this function will be over overwritten
-            by sub-classes.  
+        """ Init different item detector here, this function will be overwritten
+            by different sub-classes.  
         """
         return None
 
     def _processImg(self, img):
-        """ function to process the input cv.img. Return the processed cv.img."""
+        """ Function to process the input cv.img. Return the processed cv.img."""
         return img
 
     # -----------------------------------------------------------------------------
     def run(self):
-        """ Main loop to capture and 
+        """ Main loop to capture ime, prcess and display it. If set the showUI flag 
+            to True, this run() function must be in the program's main thread, otherwise
+            the UI will hang. 
         """
         while not self.terminate:
             success, img = self.cap.read()
@@ -171,8 +174,8 @@ class qrcdDetector(camDetector):
         self.decodeFlg = decodeFlg
         self.detectResult = [False]*10
         self.decodeInfo = None
-        self.lastCDPos = None   # last QR code detected position.
-        self.lastQRCentPos = None
+        self.lastCDPos = None       # last QR code detected position.
+        self.lastQRCentPos = None   # last QR code center position.
         super().__init__(camIdx, showUI, imgInt, imgSize)
 
     def _initCvDetector(self):
@@ -187,6 +190,7 @@ class qrcdDetector(camDetector):
     def _processImg(self, img):
         # Getting corners around the face
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Draw the image center postion cross
         img = cv2.line(img, (self.imgSize[0]//2-10, self.imgSize[1]//2), 
                        (self.imgSize[0]//2+10, self.imgSize[1]//2), (255, 0, 0), 3) 
         img = cv2.line(img, (self.imgSize[0]//2, self.imgSize[1]//2-10), 
@@ -203,7 +207,6 @@ class qrcdDetector(camDetector):
                     img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                     img = cv2.polylines(img, self.lastCDPos, True, color, 3)
             self._archiveDetectRst(points)
-            return img
         else:
             ret_qr, points = self.qcd.detectMulti(imgGray)
             if ret_qr:
@@ -219,7 +222,7 @@ class qrcdDetector(camDetector):
                         img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                         img = cv2.polylines(img, self.lastCDPos, True, color, 3)
             self._archiveDetectRst(points)
-            return img
+        return img
 
     # -----------------------------------------------------------------------------
     def getDetectionResult(self, threshold=7):

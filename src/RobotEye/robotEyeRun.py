@@ -110,6 +110,8 @@ class robotEye(object):
     def getQRcodePos(self):
         return self.detector.getQRcodeCentPo()
 
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 def main(mode):
     gv.iMainFrame = robotEye(mode=mode)
     gv.iMainFrame.run()

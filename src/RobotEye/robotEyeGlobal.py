@@ -38,7 +38,5 @@ if os.path.exists(gLibDir):
 
 UDP_PORT = 3004
 
-
-
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
 iMainFrame = None   # MainFrame.
