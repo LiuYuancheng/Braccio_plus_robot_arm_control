@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# Name:        uiGlobal.py
+# Name:        robotEyeGlobal.py
 #
 # Purpose:     This module is used as a local config file to set constants, 
 #              global parameters which will be used in the other modules.
@@ -39,4 +39,5 @@ if os.path.exists(gLibDir):
 UDP_PORT = 3004
 
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
-iMainFrame = None   # MainFrame.
+iMainFrame = None
+iDetector = None

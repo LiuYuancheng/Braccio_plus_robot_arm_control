@@ -1,8 +1,10 @@
 #!/usr/bin/python
 #-----------------------------------------------------------------------------
-# Name:        faceDetector.py
+# Name:        robotEyeRun.py
 #
-# Purpose:     
+# Purpose:     This module will init a detector to detect face / Qr-code, then 
+#              start a UDP server for other module to connect and fetch the 
+#              detection result.
 #
 # Author:      Yuancheng Liu
 #
@@ -12,7 +14,7 @@
 # License:     MIT License  
 #-----------------------------------------------------------------------------
 
-import time
+import json
 import threading
 
 import robotEyeGlobal as gv
@@ -20,10 +22,14 @@ import camDetector
 
 import udpCom
 
+FACE_DET_KEY = 'FD' # face detection request/respond key
+QRCD_DET_KEY = 'QD' # QR ccode detection request/respond key.
+
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class connectionHandler(threading.Thread):
-
+    """ UDP server to handle the other module's connection / data fetch request.
+    """
     def __init__(self, parent) -> None:
         threading.Thread.__init__(self)
         self.parent = parent
@@ -49,37 +55,46 @@ class connectionHandler(threading.Thread):
             reqKey, reqType, reqData = msg.split(';', 2)
             return (reqKey.strip(), reqType.strip(), reqData)
         except Exception as err:
-            print('The incoming message format is incorrect, ignore it.')
+            print('The incoming message format is incorrect, ignore it. Error')
             print(err)
             return (reqKey, reqType, reqData)
         
     #-----------------------------------------------------------------------------
     def cmdHandler(self, msg):
-        """ The trojan report handler method passed into the UDP server to handle the 
-            incoming messages.
-        """
+        """ The detection request handler."""
         if isinstance(msg, bytes): msg = msg.decode('utf-8')
-        print("incoming message: %s" %str(msg))
+        print("Incoming message: %s" %str(msg))
         if msg == '': return None
-        
-        # Reply tojan connection accept
-        resp = ''
-        result = 0
+        resp = None
         reqKey, reqType, data = self.parseIncomeMsg(msg)
-        if reqKey == 'FD':
-            resp = 'FD;result;'
-            if self.parent.getDetectionResult(): result = 1
-            resp += str(result)
-        elif reqKey == 'CD':
-            if reqType == 'result':
-                resp = 'CD;result;'
-                if self.parent.getDetectionResult(): result = 1
-                resp += str(result)
-            else:
-                resp = 'CD;pos;'
-                if self.parent.getDetectionResult(): 
-                    result = str(self.parent.getQRcodePos())
-                    resp += str(result)
+        if reqKey == FACE_DET_KEY:
+            resp =  self._handleFaceDetect(reqType, data)
+        elif reqKey == QRCD_DET_KEY:
+            resp = self._handleQrcdDetect(reqType, data)
+        return resp
+
+    #-----------------------------------------------------------------------------
+    def _handleFaceDetect(self, reqType, data):
+        """ Handle the face detection request."""
+        resp = FACE_DET_KEY+';err;0'
+        if gv.iDetector and str(reqType).lower() == 'rst':
+            result = {
+                'rst': gv.iDetector.getDetectionResult(),
+                'pos': gv.iDetector.getLastDectPos()
+            }
+            resp = ';'.join((FACE_DET_KEY, 'rst', json.dumps(result)))
+        return resp
+
+    #-----------------------------------------------------------------------------
+    def _handleQrcdDetect(self, reqType, data):
+        """ Handle the QR-code detection quest."""
+        resp = QRCD_DET_KEY+';err;0'
+        if gv.iDetector and str(reqType).lower() == 'rst':
+            result = {
+                'rst': gv.iDetector.getDetectionResult(),
+                'pos': gv.iDetector.getDetectedQRCent()
+            }
+            resp = ';'.join((QRCD_DET_KEY, 'rst', json.dumps(result)))
         return resp
 
 # -----------------------------------------------------------------------------
@@ -91,13 +106,13 @@ class robotEye(object):
         if mode == 0:
             print("Init the face detector...")
             self.detector = camDetector.faceDetector(
-                showUI=True, detectEye=False)
+                showUI=True, imgInt=0.1, detectEye=False)
             self.detector.setDisplayInfo(True, "Face Detection")
             print("Start the communication handler.")
         else:
             self.detector = camDetector.qrcdDetector(imgInt=0.1, showUI=True)
             self.detector.setDisplayInfo(True, "QR-Code Detection")
-
+        gv.iDetector = self.detector
         connHandler = connectionHandler(self)
         connHandler.start()
 

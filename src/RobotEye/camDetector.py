@@ -19,6 +19,8 @@ import cv2
 import time
 from statistics import mean 
 
+DET_TH = 7 # threshold to identify detected target. 
+
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class camDetector(object):
@@ -93,6 +95,7 @@ class camDetector(object):
 
     # -----------------------------------------------------------------------------
     def setCapInterval(self, interval):
+        """ Set the time interval between capturing 2 image frame. """
         self.imgInt = float(interval)
 
     # -----------------------------------------------------------------------------
@@ -129,10 +132,11 @@ class faceDetector(camDetector):
 
     # -----------------------------------------------------------------------------
     def _archiveDetectRst(self, rst):
-        if rst is None: return
+        # print(rst)
+        """ Archive the face detection result. not detected rst = () / None. """
         self.faceDetResult.pop(0)
-        self.faceDetResult.append(int(len(rst))>0)
-        self.lastFcPosList = rst
+        self.faceDetResult.append(False if rst is None else int(len(rst)) > 0)
+        self.lastFcPosList = [] if rst is None else rst
 
     # -----------------------------------------------------------------------------
     def _processImg(self, img):
@@ -150,10 +154,15 @@ class faceDetector(camDetector):
             # drawing bounding box for eyes
             for (ex, ey, ew, eh) in eyes:
                 img = cv2.rectangle(img, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
+        if self.getDetectionResult():
+            img = cv2.putText(img, "Detected", (50, 50),
+                              cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        # Return the processed image with drawing 
         return img
 
     # -----------------------------------------------------------------------------
-    def getDetectionResult(self, threshold=7):
+    # Define all the get function: 
+    def getDetectionResult(self, threshold=DET_TH):
         count = self.faceDetResult.count(True)
         return count > threshold
 
@@ -182,9 +191,9 @@ class qrcdDetector(camDetector):
         self.qcd = cv2.QRCodeDetector()
 
     def _archiveDetectRst(self, rst):
-        if rst is None: return
+        """ Archive the qr code detection result. not detected rst = () / None. """
         self.detectResult.pop(0)
-        self.detectResult.append(int(len(rst))>0)
+        self.detectResult.append(False if rst is None else int(len(rst)) > 0)
 
     # -----------------------------------------------------------------------------
     def _processImg(self, img):
@@ -202,7 +211,9 @@ class qrcdDetector(camDetector):
                     color = (0, 255, 0) if s else (0, 0, 255)
                     self.lastCDPos = [p.astype(int)]
                     self.decodeInfo = s
-                    xAvg, yAvg = self.getQRcodeCentPo()
+                    xAvg, yAvg = self.getLastQRcodeCentPos()
+                    img = cv2.putText(img, str(
+                            (xAvg, yAvg)), (xAvg, yAvg), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
                     img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
                     img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                     img = cv2.polylines(img, self.lastCDPos, True, color, 3)
@@ -215,34 +226,47 @@ class qrcdDetector(camDetector):
                 if not points is None:
                     for point in points:
                         self.lastCDPos = [point.astype(int)]
-                        xAvg, yAvg = self.getQRcodeCentPo()
+                        xAvg, yAvg = self.getLastQRcodeCentPos()
                         img = cv2.putText(img, str(
                             (xAvg, yAvg)), (xAvg, yAvg), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
-                        img = cv2.line(img, (5, yAvg), (self.imgSize[0]-5, yAvg), color, 2) 
+                        img = cv2.line(img, (5, yAvg), (self.imgSize[0]+5, yAvg), color, 2) 
                         img = cv2.line(img, (xAvg, 5), (xAvg, self.imgSize[1]-5), color, 2)
                         img = cv2.polylines(img, self.lastCDPos, True, color, 3)
             self._archiveDetectRst(points)
+        if self.getDetectionResult():
+            img = cv2.putText(img, "Detected", (50, 50),
+                              cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        # Return the processed image with drawing 
         return img
 
     # -----------------------------------------------------------------------------
-    def getDetectionResult(self, threshold=7):
+    def getDetectionResult(self, threshold=DET_TH):
         count = self.detectResult.count(True)
         return count > threshold
 
     def getQRcodeData(self):
         return self.decodeInfo
 
-    def getQRCodePos(self):
+    def getLastQRCodePos(self):
         return self.lastCDPos
     
-    def getQRcodeCentPo(self):
+    def getLastQRcodeCentPos(self):
+        """ Average all last recorded points x-Axis, y-Axis to get the Qr-code's 
+            center point postion. 
+        """
         xAvg = int(mean([int(pt[0]) for pt in self.lastCDPos[0]]))
         yAvg = int(mean([int(pt[1]) for pt in self.lastCDPos[0]]))
         return(xAvg, yAvg)
-
+    
+    def getDetectedQRCent(self):
+        """ Return the QR code center postion if confirmed detected QR code, else 
+            return None.
+        """
+        return self.getLastQRcodeCentPos() if self.getDetectionResult() else None
+           
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
-def main(mode):
+def testCase(mode):
     if mode == 0:
         detector = camDetector(imgInt=0.1)
         detector.setDisplayInfo(True, "Camera")
@@ -251,9 +275,9 @@ def main(mode):
         detector = faceDetector(showUI=True, detectEye=True)
         detector.run()
     else:
-        detector = qrcdDetector(imgInt=1, showUI=True)
+        detector = qrcdDetector(imgInt=0.1, showUI=True)
         detector.run()
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
-    main(3)
+    testCase(2)
