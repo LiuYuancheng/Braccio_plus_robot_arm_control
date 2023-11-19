@@ -36,8 +36,9 @@ gLibDir = os.path.join(gTopDir, LIBDIR)
 if os.path.exists(gLibDir):
     sys.path.insert(0, gLibDir)
 
-UDP_PORT = 3004
+gUdpPort = 3004
 
 #-------<GLOBAL PARAMTERS>-----------------------------------------------------
 iMainFrame = None
 iDetector = None
+iConnHandler = None

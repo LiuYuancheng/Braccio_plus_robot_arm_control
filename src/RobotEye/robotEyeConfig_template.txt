@@ -1,0 +1,38 @@
+# This is the config file template for the module <robotEyeRun.py>
+# Setup the paramter with below format (every line follows <key>:<val> format, the
+# key can not be changed):
+
+#-----------------------------------------------------------------------------
+# Set the detector type: FD: face detector, QD: Qr-code detector
+DET_TYPE:QD
+
+# UDP service port
+UDP_PORT:3004
+
+#-----------------------------------------------------------------------------
+# Set the detector parameters
+
+# Init Camera Idx
+CAM_IDX:0
+
+# Show detection result UI
+SHOW_UI:True
+
+# Display name
+WIN_NAME:False detection
+
+
+# Image capture frame interface FPS_INT
+#FPS_INT:0.1
+
+# face detection special flag : whether detect eyes. 
+DET_EYE:False
+
+# Qr code detect special flag: whether decode qr code information.
+QR_DECODE:False
+
+
+
+
+
+

@@ -14,6 +14,7 @@
 # License:     MIT License  
 #-----------------------------------------------------------------------------
 
+import os
 import json
 import threading
 
@@ -21,7 +22,9 @@ import robotEyeGlobal as gv
 import camDetector
 
 import udpCom
+import ConfigLoader
 
+CFG_FILE = 'robotEyeConfig.txt'
 FACE_DET_KEY = 'FD' # face detection request/respond key
 QRCD_DET_KEY = 'QD' # QR ccode detection request/respond key.
 
@@ -33,13 +36,14 @@ class connectionHandler(threading.Thread):
     def __init__(self, parent) -> None:
         threading.Thread.__init__(self)
         self.parent = parent
-        self.server = udpCom.udpServer(None, gv.UDP_PORT)
+        self.server = udpCom.udpServer(None, gv.gUdpPort)
         #self.server.setBufferSize(bufferSize=gv.BUF_SZ)
+        self.terminate = False
 
     #-----------------------------------------------------------------------------
     def run(self):
         print("Start the robot eye service host..")
-        print("Start the UDP echo server listening port [%s]" % str(gv.UDP_PORT))
+        print("Start the UDP echo server listening port [%s]" % str(gv.gUdpPort))
         self.server.serverStart(handler=self.cmdHandler)
     
     #-----------------------------------------------------------------------------
@@ -97,33 +101,63 @@ class connectionHandler(threading.Thread):
             resp = ';'.join((QRCD_DET_KEY, 'rst', json.dumps(result)))
         return resp
 
+    #-----------------------------------------------------------------------------
+    def stop(self):
+        """ Stop the thread."""
+        self.terminate = True
+        if self.server: self.server.serverStop()
+        endClient = udpCom.udpClient(('127.0.0.1', gv.gUdpPort))
+        endClient.disconnect()
+        endClient = None
+
+
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 class robotEye(object):
 
     def __init__(self, mode=0) -> None:
-        self.detector = None
-        if mode == 0:
-            print("Init the face detector...")
-            self.detector = camDetector.faceDetector(
-                showUI=True, imgInt=0.1, detectEye=False)
-            self.detector.setDisplayInfo(True, "Face Detection")
+        print("Start init the robot eye:")
+        cfgFilePath = os.path.join(gv.dirpath, CFG_FILE)
+        self.cfgLoader = ConfigLoader.ConfigLoader(cfgFilePath, mode='r')
+        cfg_dict = self.cfgLoader .getJson()
+        # init the detector paramters
+        mode = cfg_dict['DET_TYPE'] if 'DET_TYPE' in cfg_dict.keys() else None 
+        if 'UDP_PORT' in cfg_dict.keys(): gv.gUdpPort = int(cfg_dict['UDP_PORT'])
+        camIdxParm = int(cfg_dict['CAM_IDX']) if 'CAM_IDX' in cfg_dict.keys() else 0
+        showUIParm = cfg_dict['SHOW_UI'] if 'SHOW_UI' in cfg_dict.keys() else True
+        imgIntParm = float(cfg_dict['FPS_INT']) if 'FPS_INT' in cfg_dict.keys() else 0.1
+
+        if mode == FACE_DET_KEY:
+            print("Init the face detector ...")
+            detectEyeFlg = cfg_dict['DET_EYE'] if 'DET_EYE' in cfg_dict.keys() else False 
+            gv.iDetector = camDetector.faceDetector(camIdx=camIdxParm,
+                showUI=showUIParm, imgInt=imgIntParm, detectEye=detectEyeFlg)
+            gv.iDetector.setDisplayInfo(True, "Face Detection")
             print("Start the communication handler.")
+        elif mode == QRCD_DET_KEY:
+            print("Init the Qr-code detector ...")
+            decodeInfoFlg = cfg_dict['QR_DECODE'] if 'QR_DECODE' in cfg_dict.keys() else False 
+            gv.iDetector = camDetector.qrcdDetector(
+                camIdx=camIdxParm, showUI=showUIParm, imgInt=imgIntParm, decodeFlg=decodeInfoFlg)
+            gv.iDetector.setDisplayInfo(True, "QR-Code Detection")
         else:
-            self.detector = camDetector.qrcdDetector(imgInt=0.1, showUI=True)
-            self.detector.setDisplayInfo(True, "QR-Code Detection")
-        gv.iDetector = self.detector
-        connHandler = connectionHandler(self)
-        connHandler.start()
+            print("The detector mode [%s] is not valid, exit..." %str(mode))
+            return None 
+        
+        print("Start the communication handling thread.")
+        gv.iConnHandler = connectionHandler(self)
+        gv.iConnHandler.start()
+        print("Robot Eye init finished.")
 
+    # -----------------------------------------------------------------------------
     def run(self):
-        self.detector.run()
+        print("Start the robot eye.")
+        gv.iDetector.run()
 
-    def getDetectionResult(self):
-        return self.detector.getDetectionResult()
-
-    def getQRcodePos(self):
-        return self.detector.getQRcodeCentPo()
+    # -----------------------------------------------------------------------------
+    def stop(self):
+        if gv.iConnHandler: gv.iConnHandler.stop()
+        if gv.iDetector: gv.iDetector.stop()
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------

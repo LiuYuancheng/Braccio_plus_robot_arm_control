@@ -5,7 +5,7 @@
 #
 # Purpose:     This module will open the camera to capture the video (pic) then 
 #              use openCV to detect different items (such as face, qr code). All
-#              the detector class are inheritted from the parent class <camDetector>   
+#              the detector class are inherited from the parent class <camDetector>   
 #
 # Author:      Yuancheng Liu
 #
