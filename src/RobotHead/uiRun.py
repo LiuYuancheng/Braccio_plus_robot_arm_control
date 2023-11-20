@@ -13,6 +13,7 @@
 import os
 import sys
 import time
+import json
 import wx
 import uiGobal as gv
 import uiPanel as pl
@@ -105,30 +106,34 @@ class UIFrame(wx.Frame):
             gv.iImagePanel.updateDisplay()
 
     def faceDetectionDemo(self):
-        msg = 'FD;check;?'
+        msg = 'FD;rst;?'
         resp = self.client.sendMsg(msg, resp=True)
         print("incoming message: %s" %str(resp))
         if not resp is None:
             result = self.parseIncomeMsg(resp)
-            gv.iImagePanel.setSleepFlg(result[-1])
-            if result[-1] == '1': self.demoingFlg = True
+            data = json.loads(result[-1])
+            detFlg = '1' if data['rst'] else 0
+            gv.iImagePanel.setSleepFlg(detFlg)
+            if detFlg == '1': self.demoingFlg = True
         if self.demoingFlg:
             resp = self.braccioClient.sendMsg('demo1', resp=True)
             print("robot demo start")
 
     def qrCodeDetectDemo(self):
-        msg = 'CD;pos;?'
+        msg = 'QD;rst;?'
         resp = self.client.sendMsg(msg, resp=True)
+        print("incoming message: %s" %str(resp))
         posType = 0 
         if not resp is None:
             result = self.parseIncomeMsg(resp)
-            # 
-            if result[-1] == '' or result[-1] == '0':
+            data = json.loads(result[-1])
+
+            if not data['rst']:
                 print("not detect any thing")
             else:
                 gv.iImagePanel.setSleepFlg('1')
                 print("detect item at pos: %s" %str(result[-1]))
-                boxPos = eval(result[-1])
+                boxPos = data['pos']
                 if 200 < int(boxPos[0]) < 400:
                     posType = 3
                 elif 400 <= int(boxPos[0]) < 700:

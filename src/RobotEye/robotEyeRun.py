@@ -75,6 +75,8 @@ class connectionHandler(threading.Thread):
             resp =  self._handleFaceDetect(reqType, data)
         elif reqKey == QRCD_DET_KEY:
             resp = self._handleQrcdDetect(reqType, data)
+        else:
+            print('ERR: the input fetch key [%s] is not valid' %str(reqKey))
         return resp
 
     #-----------------------------------------------------------------------------

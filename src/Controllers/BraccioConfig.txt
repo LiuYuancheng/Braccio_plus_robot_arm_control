@@ -6,7 +6,7 @@
 # Test mode:
 # True: use the simulation data without currect to the PLC module.
 # False: connect to PLC via modbus TCP, fetch and set the PLC real state.
-TEST_MD:False
+TEST_MD:True
 
 #-----------------------------------------------------------------------------
 # Define the Arduino serial communication information.

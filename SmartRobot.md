@@ -1,13 +1,13 @@
-# Smart Robot Emulator 
+# Smart IoT Robot Emulator 
 
-We want to create a simple **robot emulation system** which can interactive with the environment and human to simulate the smart robot's action or the smart manufacturing process. The robot system will use the classic **IoT** hub-control type distribution framework. Each components are linked by wireless connection. The whole system contents 4 main parts :
+We want to create a simple **IoT** **Robot Emulation System** which can interactive with the environment and human to simulate the smart robot's action or the smart manufacturing process. The robot system will use the classic distributed **IoT** hub-control type framework. Each components are linked by wireless connection. The whole system contents 4 main part :
 
 - Several eye / sense components ( camera, microphone and sensors ) . 
 - One or more face / info-broadcast components (screen and speaker) . 
 - One center controller / decision maker. 
 - Several Braccio_Plus_Robot_Arm with the controllers. 
 
-All the components will communicate with each other via WIFI or 4G/5G, so they can work together in different place (or even geo-location) : Such as in a smart factory, the robot arms can be located in production pipeline room, another eye can be in the warehouse, the center controller and info-broadcast nodes can be in the control room.
+All the components will communicate with each other via WIFI or 4G/5G, so they can work together in different place ( or geo-location ) : Such as simulate in a smart manufacture factory, the robot arms can be located in production pipeline room, another eye can be in the warehouse, the center controller and info-broadcast nodes can be in the control room.
 
 [TOC]
 
@@ -19,19 +19,19 @@ The robot emulation system includes 4 main module, the robot eye, the robot face
 
 ![](doc/img/RobotSys/systemDiagram.png)
 
-In each system, there will be one head node controls several eye, face and arm nodes.
+In each system, there will be one head node controls several eye, face and arm nodes. The main function of each node is shown below : 
 
 ##### 1. Robot Eye Module
 
-The "**Eye**" module ( running on the `Eye node-N` ) contents a camera objects detection program to identify human or items for the robot to sense the environment. It also has a UDP server interface for other robot modules ( such as robot head ) to connect then fetch the detection result and dynamically fine tune the detection control parameters to improve the detection accuracy.
+The "**Eye**" module ( running on the Eye node-N ) contents a camera objects detection program to identify human or items for the robot to sense the environment. It also has a UDP server interface for other robot modules ( such as robot head ) to connect to it, then fetch the detection result and dynamically fine tune the detection control parameters to improve the detection accuracy.
 
 ##### 2. Robot Face Module
 
-The "**Face**" module ( running on the `Face node-N` ) is the bridge to link users and robot, it contents several different GUIs to show the robot's information, robot current state to the user, and it also provides the interface for user to control the robot's action. The user can interact with the robot via the face module.
+The "**Face**" module ( running on the Face node-N ) is the "bridge" to link users and robot, it contents several different GUIs to show the robot's information, robot current state to the user, and it also provides the interface for user to control the robot's action. The user can interact with the robot via the face module.
 
 ##### 3. Robot Head Module
 
-The "**Head**" module ( running on `Head node` ) is the decision maker to control all the other modules, it will fetch the detection information from the eye modules, get the control request from the face module. Then control the body (arm) to do the action and show the related state/information on the face module.
+The "**Head**" module ( running on Head node ) is the decision maker to control all the other modules, it will fetch the detection information from the eye modules, get the control request from the face module. Then control the body (arm) to do the action and show the related state/information on the face module. Currently the action includes the formular calculation action ( such as calculate how to move the arm to grab a detected box ) and playbook actions ( such as do some complex action based on user's pre-set playbook ), in the future, we may integrate AI in the decision maker to make the robot can do "more".
 
 ##### 4. Robot Body Module
 
@@ -51,21 +51,21 @@ The robot will detect whether someone is watching it. If it identifies human is 
 
 ![](doc/img/demoVideo1.png)
 
-Detail demo steps : 
+Detail demo progress : 
 
-1. The eye module will keep detecting human face ( with 2 eyes ), if no people is watching the robot face, the face node will show a "sleeping emoji" .
+1. The eye module will keep detecting human face ( with 2 eyes to make sure people is watching it ), if no people is watching the robot face, the face node will show a "sleeping emoji" .
 
-2. If the eye node detects a people is watching the robot face more than 2 seconds, the robot will wake up and prepare to show some demo to the people ( wave its robot arm and show "I will show some demo" on face UI" ).
+2. If the eye node detects a people is watching the robot face more than 2 seconds, the robot will wake up and prepare to show some demo to the people ( wave its robot arm and show "I will show some demo" on face UI ).
 
 3. If the eye detect the people is watching the arm, then the head will control the arm to grab a small box next to it and hand over to the people. 
 
-4. If the eye node didn't detect people, the head will change the face to sleep emoji and rest the arm to default position.
+4. If the eye node doesn't detect people any more, the head will change the face to sleep emoji and rest the arm to default position.
 
    
 
-##### Demo 2 : Detect QR-code location and grab the box 
+##### Demo 2 : Detect QR-code position and grab the box
 
-The robot will detect the position of the QR code, if a box with a QR-code on it is detected, the robot will try to grab the box and transfer it to a user pre-set location. 
+The robot will detect the position of the QR-code in the video picture, if a box ( with a QR-code on it ) is detected, the robot will try to grab the box and transfer it to a user pre-set location.
 
 Video link of the demo 2 : [watch demo2 on YouTube](https://www.youtube.com/watch?v=IK6gI5Kcni8)
 
@@ -92,12 +92,12 @@ Each module of the robot system will follow below diagram to work with each othe
 
 #### Design of Robot Eyes module
 
-The robot eye module contents two main parts ( The camera detection module and the UDP host ) :
+The robot eye module contents two main parts ( Camera detection module and UDP host ) : 
 
 - **Camera detection module** : This module will capture the video from the camera, then detect the object in the video based on the user's detection configuration. This module will also provide a UI to show the detection result.
-- **UDP service host** : A UDP server will be start in a parallel sub-thread to handle the detection parameters change request from other module and send the current detection result to the connected module.
+- **UDP service host** : A UDP server will be start in a parallel sub-thread to handle the detection parameters change request from other module and handle the current detection result fetch request.
 
-The Detailed Robot Eye work flow is shown below : 
+The Detailed Robot Eye Module's work flow is shown below :
 
 ![](doc/img/RobotEye/workflow.png)
 
@@ -106,12 +106,12 @@ Currently the detector provide two types of detection :
 **Human face detection ** will detect human face for the robot to interact with people : 
 
 - Normal face detection : detect multiple human faces in the video stream and save all the faces' position.
-- Detect face with 2 eyes : detect human face and two eye, only save the position with both face and two eyes are detected. (So the detect result only contents people who is facing direct to the camera)
+- Detect face with 2 eyes : detect both human face and two eye, only save the position with both face and two eyes are detected. ( So the detect result only contents people who is facing direct to the camera )
 
 **QR code detection** will detect the QR-code for robot to interact with the environment : 
 
 - Normal QR-code detection : detect multiple QR-code in the video and save all the QR-code position. 
-- QR-code detect and decode : decode the QR-code information during the detection. (So if we put different Qr-code on different objects , we can control the robot to grab the specific one based on the QR-code info )
+- QR-code detect and decode : detect QR-code and decode the QR-code information during the detection. ( So if we put different QR-code on different objects , we can control the robot to grab the specific object based on the user's preset QR-code info )
 
 If we enable the detection result display flag, the program will provide a CV-image window to show the detection result in real time as shown below: 
 
@@ -125,7 +125,7 @@ Hardware needed : Web camera
 
 #### Design of Robot Face Module
 
-The Robot Face is the Interactive interface to make the robot can communicate with human to accept the user's control command and feedback the robot current state. Three main user interfaces are provided : Robot Arm controller UI, Robot face emoji UI and the Robot eye detection UI.
+The Robot Face is the Interactive interface to make the robot can communicate with user to accept the user's control command and feedback the robot current state. Three main user interfaces are provided : Robot Arm controller UI, Robot face emoji UI and the Robot eye detection UI.
 
 **Robot Arm Controller UI** : The interactive interface for user to remote control the robot arm through wire connection (serial comm) or wireless connection (WIFI TCP/UDP comm). It will provide the below function to user :
 
@@ -133,11 +133,11 @@ The Robot Face is the Interactive interface to make the robot can communicate wi
 2. Control the 6 servo motor ( M1 ~ M6 ) to move the arm. 
 3. Allow user to reset the Braccio++ robot arm position, and load their arm action "playbook" to make the arm to finish some complex action. 
 
-**Robot Face Emoji UI** : The interactive interface ( a emoji and a chat text field ) for robot to tell user its current state. (Such as show the user it is free to receive new command or it is doing some action. During the demo, it will also show the introduction to guide the user to follow the demo steps. 
+**Robot Face Emoji UI** : The interactive interface ( a emoji and a chat text field ) for robot to tell user its current state ( such as show the user whether it is free to receive new commands or it is doing some action ) . During the face detection demo, it will also show the introduction to guide the user to follow the demo steps.
 
-**Robot Eye Detection UI** :  The interface to show the current eye module detection result. (High light the detected object and show the object position in the image)
+**Robot Eye Detection UI** :  The interface to show the current eye module detection result. ( High light the detected object and show the object position in the image )
 
-The Face module UI is shown below (detect human and react) : 
+The Face module UI is shown below ( detect human and react ) : 
 
 ![](doc/img/RobotSys/face.png)
 
@@ -149,9 +149,9 @@ Hardware needed : Full HD screen
 
 #### Design of Robot Head Module
 
-The Robot head the main control to link other module together : it will fetch the information from eye module, analysis the situation then ask face and body to do the related action. Each robot can only have one head, if there is more than one robots in a subnet, the robot head can decide to connect to which eye nodes, face nodes and body nodes. We also provide the ability which allow two robot "Share" a same arm (one master and many slave), so for a robot arm, if the master head node is not send it a task, other slave node can also control it to finish some task. Once the master head request its arm do some task, the arm controller will clear all the slave's queued task in its task queue. 
+The Robot head is the main controller-hub to link all other modules together : it will fetch the information from eye module, analysis the situation then ask face and body to do the related action. Each robot can only have one head, if there is more than one robots in a subnet, the robot head can decide to connect to which eye nodes, face nodes and body nodes. We also provide the ability which allow two robot to "share" a same arm ( one master and many slaves ), so for a robot arm, if the master head node is not giving it a task, other slave node can also control it to finish some task. Once the master head request its arm do some tasks, the arm controller will clear all the slaves' queued tasks in its task queue.
 
-The Head module contents One decision maker and three type of client to communicate with other 3 module via UDP .  
+The Head module contents one decision maker and three types of client to communicate with other 3 module via UDP .
 
 - **Decision maker** : The decision maker module is the center processer of the robot head, it will load several pre-set robot arm action playbook and config file. It will fetch the environment detection result from the eye module, collect user's command from the controller module then create the action tasks list and send to the robot arm module and update the face display. 
 - **Eye Connection Client** : A communication client with a list of UDP clients used to connect multiple robot Eyes to fetch detection result. 
