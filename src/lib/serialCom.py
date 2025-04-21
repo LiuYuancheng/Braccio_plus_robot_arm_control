@@ -35,7 +35,7 @@ class serialCom(Serial):
         """ Init the serial communication and if serialPort is None the program 
             will automatically find the port which it can connect.
             serialPort(string): port name string. 
-            baudRate(int): serial communicaion baudrate.
+            baudRate(int): serial communication baud rate.
         """
         self.connected = False
         # Automatically find the serial port which can read and write.
