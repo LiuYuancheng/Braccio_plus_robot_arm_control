@@ -1,28 +1,58 @@
 # Braccio_Plus_Robot_Arm_Controller
-The robot arms are widely used in the different kinds of Industry 4.0 scenario such as create smart factories with the interconnection of systems that can exchange data, integrate the entire production chain and make decentralized decisions. We want to create a simple robot arm control software ( with UI ) which allows the user can remote control the [Braccio++ Robot Arm](https://store.arduino.cc/products/braccioplusplus) via Serial port, UDP or TCP and let the robot arm do some complex actions sequence ( such as grab a box and transfer the boxes on to canvas conveyer). The program is designed and implemented for below purpose : 
+**Project Design Purpose** : The robot arms are widely used in the different kinds of Industry 4.0 scenario such as create smart factories with the interconnection of systems that can exchange data, integrate the entire production chain and make decentralized decisions. We want to create a simple robot arm control software ( with UI ) which allows the user can remote control the [Braccio++ Robot Arm](https://store.arduino.cc/products/braccioplusplus) via Serial port, UDP or TCP and let the robot arm do some complex actions sequence ( such as grab a box and transfer the boxes on to canvas conveyer). The program is designed and implemented for below purpose : 
 
 - **Testing** : For user who wants to try, learn and test their Braccio++ robot arm. 
 - **Education** : For ICS / IOT course  instructor to show robot arm usage cases or use for robot / auto-control related class hands on demo/lab/assignment.  
 - **Development/Demo** : For people who wants to build more complex scenario such as a smart factories model for demo and research. 
 
+```python
+# Author:      Yuancheng Liu
+# Version:     v_0.2.0
+# Created:     2023/09/01
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License
+```
+
 [TOC]
+
+- [Braccio_Plus_Robot_Arm_Controller](#braccio-plus-robot-arm-controller)
+    + [1. Introduction](#1-introduction)
+      - [1.1 Project Overview](#11-project-overview)
+      - [1.2 Background Knowledge Introduction](#12-background-knowledge-introduction)
+      - [1.3 Project Detail Introduction](#13-project-detail-introduction)
+    + [2. Program Design](#2-program-design)
+      - [2.1 Braccio ++ Arduino firmware](#21-braccio----arduino-firmware)
+      - [2.2 Braccio ++ Controller UI](#22-braccio----controller-ui)
+      - [2.3 Serial Comm CMD/MSG Format](#23-serial-comm-cmd-msg-format)
+    + [3. Program Setup](#3-program-setup)
+      - [3.1 Assemble the Braccio++ Robot Arm](#31-assemble-the-braccio---robot-arm)
+      - [3.2 Setup Braccio ++ Arduino Firmware](#32-setup-braccio----arduino-firmware)
+      - [3.3 Setup Braccio ++ Controller UI](#33-setup-braccio----controller-ui)
+    + [4. Program Usage](#4-program-usage)
+      - [4.1 Load the Braccio ++ Arduino Firmware](#41-load-the-braccio----arduino-firmware)
+      - [4.2 Run the Robot Arm Controller Program](#42-run-the-robot-arm-controller-program)
+      - [4.3 Connect to the Braccio ++ Arduino](#43-connect-to-the-braccio----arduino)
+      - [4.4 Make the Robot Arm Do Complex Action](#44-make-the-robot-arm-do-complex-action)
+    + [5. Problem and Solution](#5-problem-and-solution)
 
 ------
 
-### Introduction
+### 1. Introduction
 
-##### Background Knowledge Introduction 
-
-- **Industry 4.0** : The Industry 4.0, or the 4th Industrial Revolution, was made possible by developing new technologies such as cyber-physical systems, the Internet of Things, cloud computing, cognitive computing, and Artificial Intelligence. 
-- **Braccio ++ Robot Arm** : The Arduino Braccio ++ offers a multitude of expansive possibilities from the very outset, including a new Braccio Carrier with LCD screen, new RS485 servo motors, and a totally enhanced experience. Detailed introduction please refer to the Braccio official website: https://store.arduino.cc/products/braccioplusplus
-
-##### Braccio Plus Robot Arm Controller Introduction 
+#### 1.1 Project Overview
 
 The Braccio_Plus_Robot_Arm_Controller provides the Arduino firmware and UI based controller program for user to remote control the Braccio ++ Robot Arm via serial port, UDP or TCP and let the robot do some complex actions/tasks. This is a example to let the robot arm to execute a box transfer task ( grab a small box and put it into a bigger box ) :
 
  ![](doc/img/grabbox.gif)
 
 To check the entire HD video please refer to this link : [Online Video Link](https://www.youtube.com/watch?v=CKylrEuSwHE)
+
+#### 1.2 Background Knowledge Introduction 
+
+- **Industry 4.0** : The Industry 4.0, or the 4th Industrial Revolution, was made possible by developing new technologies such as cyber-physical systems, the Internet of Things, cloud computing, cognitive computing, and Artificial Intelligence. 
+- **Braccio ++ Robot Arm** : The Arduino Braccio ++ offers a multitude of expansive possibilities from the very outset, including a new Braccio Carrier with LCD screen, new RS485 servo motors, and a totally enhanced experience. Detailed introduction please refer to the Braccio official website: https://store.arduino.cc/products/braccioplusplus
+
+#### 1.3 Project Detail Introduction
 
 Braccio_Plus_Robot_Arm_Controller contents two parts : 
 
@@ -44,20 +74,20 @@ This is the user interface screen shot of the Braccio ++ Controller UI :
 
 ------
 
-### Program Design
+### 2. Program Design
 
 This session will introduce the detail design of Braccio ++ Arduino firmware and Braccio ++ Controller UI. The two programs' workflow diagram is shown below:
 
  ![](doc/img/workflow.png)
 
-##### Braccio ++ Arduino firmware 
+#### 2.1 Braccio ++ Arduino firmware 
 
 The Braccio ++ Arduino firmware will be loaded/burned in to the Arduino Nano RP2040 board on the Braccio++ robot arm's Arduino carrier, it contents 2 main parts : 
 
 - Communication handling module : For different firmware (`Braccio_serial_comm.ino`, `Braccio_tcp_comm.ino`, `Braccio_udp_comm.ino`), they will provide different communication protocol handler to receive the control request from controller and feed back the action execution result / state . 
 - User request handling module : based on the request send from the controller, the firmware main program will call different API to control the robot arm and the other components on the Arduino carrier board ( such as the mini LCD screen and the LED light ). 
 
-##### Braccio ++ Controller UI 
+#### 2.2 Braccio ++ Controller UI 
 
 User will use Braccio ++ Controller UI to remote control the robot arm, the program will run the on user's computer with 2 parallel threads : 
 
@@ -78,7 +108,7 @@ The user action, controller state and Braccio ++ firmware execution state timing
 
 
 
-##### Serial Comm CMD/MSG Format
+#### 2.3 Serial Comm CMD/MSG Format
 
 The communication request / respond bytes will follow below format ( String => bytes under "`utf-8`" encode ) 
 
@@ -93,7 +123,7 @@ The communication request / respond bytes will follow below format ( String => b
 
 All the moto ID key are 4 chars string and the mapping is shown below : 
 
-```
+```python
 gripper    = grip
 wristRoll  = wrtR
 wristPitch = wrtP
@@ -106,11 +136,11 @@ base       = base
 
 ------
 
-### Program Setup
+### 3. Program Setup
 
 The user need to finish the program / environment setup part before use the program such as assemble the robot arm, install the program need lib and the program edit IDE. 
 
-##### Assemble the Braccio++ Robot Arm 
+#### 3.1 Assemble the Braccio++ Robot Arm 
 
 Follow the below link to assemble the Braccio++ robot arm and link the Arduino Nano to computer with a micro USB cable. 
 
@@ -122,7 +152,7 @@ If you are using the Windows-OS, please select Device manager => COM port, recor
 
 
 
-##### Setup Braccio ++ Arduino Firmware 
+#### 3.2 Setup Braccio ++ Arduino Firmware 
 
 Development/Execution Environment : C++
 
@@ -143,7 +173,7 @@ Program Files List :
 
 
 
-##### Setup Braccio ++ Controller UI 
+#### 3.3 Setup Braccio ++ Controller UI 
 
 Development/Execution Environment : python 3.7.4+
 
@@ -168,11 +198,11 @@ Program Files List :
 
 ------
 
-### Program Usage
+### 4. Program Usage
 
 After finished the program setup part, you can start to use the Braccio++ Robot Arm with below steps: 
 
-##### Load the Braccio ++ Arduino Firmware 
+#### 4.1 Load the Braccio ++ Arduino Firmware 
 
 If you are the 1st time using the Braccio ++ Robot Arm , you need to upload/burn the firmware program into the Arduino. Open the Arduino IDE, click the lib icon then search key word "Braccio ++" and install the Braccio ++ API lib ( currently we highly recommend you use the web-IDE so you don't need to fix the lib version problem ) :
 
@@ -184,15 +214,15 @@ Then open the file `Braccio_serial_comm.ino` (File => Open => select the ino fil
 
 
 
-##### Run the Robot Arm Controller Program
+#### 4.2 Run the Robot Arm Controller Program
 
 After finished load the firmware and link the arm to your computer, open folder "Controllers" and run the controller UI program with below command : 
 
-```
+```bash
 python BraccioController.py
 ```
 
-**Connect to the Braccio ++ Arduino**
+#### 4.3 Connect to the Braccio ++ Arduino
 
 In the UI top communication selection drop down menu, select the connection type : 
 
@@ -210,7 +240,7 @@ Then you can see the Braccio ++ robot arm will start to move. (Check the detail 
 
 
 
-##### Make the Robot Arm Do Complex Action
+#### 4.4 Make the Robot Arm Do Complex Action
 
 We also provide the function to let user to setup/edit a "playbook" to make the arm do some complex action such as grab a small box and put it to another big box. 
 
@@ -242,11 +272,11 @@ If you want to change the robot arm to init position, press the "Reset Position"
 
 ------
 
-#### Problem and Solution
+### 5. Problem and Solution
 
 Refer to `doc/ProblemAndSolution.md`
 
-
+https://www.linkedin.com/pulse/braccio-plus-robot-arm-controller-yuancheng-liu-h5gfc
 
 ------
 
