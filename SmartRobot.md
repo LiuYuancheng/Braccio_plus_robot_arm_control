@@ -1,6 +1,6 @@
 # Smart IoT Robot Emulator 
 
-We want to create a simple **IoT** **Robot Emulation System** which can interactive with the environment and human to simulate the smart robot's action or the smart manufacturing process. The robot system will use the classic distributed **IoT** hub-control type framework. Each components are linked by wireless connection. The whole system contents 4 main part :
+**Project Design Purpose** : We want to create a simple **IoT** **Robot Emulation System** which can interactive with the environment and human to simulate the smart robot's action or the smart manufacturing process. The robot system will use the classic distributed **IoT** hub-control type framework. Each components are linked by wireless connection. The whole system contents 4 main part :
 
 - Several eye / sense components ( camera, microphone and sensors ) . 
 - One or more face / info-broadcast components (screen and speaker) . 
@@ -9,11 +9,38 @@ We want to create a simple **IoT** **Robot Emulation System** which can interact
 
 All the components will communicate with each other via WIFI or 4G/5G, so they can work together in different place ( or geo-location ) : Such as simulate in a smart manufacture factory, the robot arms can be located in production pipeline room, another eye can be in the warehouse, the center controller and info-broadcast nodes can be in the control room.
 
+```python
+# Author:      Yuancheng Liu
+# Version:     v_0.1.3
+# Created:     2023/09/05
+# Copyright:   Copyright (c) 2023 LiuYuancheng
+# License:     MIT License
+```
+
+**Table of Contents**
+
 [TOC]
+
+- [Smart IoT Robot Emulator](#smart-iot-robot-emulator)
+    + [1. Introduction](#1-introduction)
+      - [1.1 Robot Eye Module](#11-robot-eye-module)
+      - [1.2 Robot Face Module](#12-robot-face-module)
+      - [1.3 Robot Head Module](#13-robot-head-module)
+      - [1.4. Robot Body Module](#14-robot-body-module)
+    + [2. System Demo](#2-system-demo)
+      - [2.1 Demo 1: Detect human and show arm control](#21-demo-1--detect-human-and-show-arm-control)
+      - [2.2 Demo 2 : Detect QR-code position and grab the box](#22-demo-2---detect-qr-code-position-and-grab-the-box)
+    + [3. Program Design](#3-program-design)
+      - [3.1 Design of Robot Eyes module](#31-design-of-robot-eyes-module)
+      - [3.2 Design of Robot Face Module](#32-design-of-robot-face-module)
+      - [3.3 Design of Robot Head Module](#33-design-of-robot-head-module)
+      - [3.4 Design of Robot Body Module](#34-design-of-robot-body-module)
+    + [4. Program Setup and Execution](#4-program-setup-and-execution)
+    + [5. Problem and Solution](#5-problem-and-solution)
 
 ------
 
-### Introduction
+### 1. Introduction
 
 The robot emulation system includes 4 main module, the robot eye, the robot face , the robot head and the robot body. Each module will connect to the head module via Wifi or 5G wireless connection. The robot system diagram is shown below: 
 
@@ -21,29 +48,31 @@ The robot emulation system includes 4 main module, the robot eye, the robot face
 
 In each system, there will be one head node controls several eye, face and arm nodes. The main function of each node is shown below : 
 
-##### 1. Robot Eye Module
+#### 1.1 Robot Eye Module
 
 The "**Eye**" module ( running on the Eye node-N ) contents a camera objects detection program to identify human or items for the robot to sense the environment. It also has a UDP server interface for other robot modules ( such as robot head ) to connect to it, then fetch the detection result and dynamically fine tune the detection control parameters to improve the detection accuracy.
 
-##### 2. Robot Face Module
+#### 1.2 Robot Face Module
 
 The "**Face**" module ( running on the Face node-N ) is the "bridge" to link users and robot, it contents several different GUIs to show the robot's information, robot current state to the user, and it also provides the interface for user to control the robot's action. The user can interact with the robot via the face module.
 
-##### 3. Robot Head Module
+#### 1.3 Robot Head Module
 
 The "**Head**" module ( running on Head node ) is the decision maker to control all the other modules, it will fetch the detection information from the eye modules, get the control request from the face module. Then control the body (arm) to do the action and show the related state/information on the face module. Currently the action includes the formular calculation action ( such as calculate how to move the arm to grab a detected box ) and playbook actions ( such as do some complex action based on user's pre-set playbook ), in the future, we may integrate AI in the decision maker to make the robot can do "more".
 
-##### 4. Robot Body Module
+#### 1.4. Robot Body Module
 
 The "**Body**" module ( running on the `Arm node-N` ) includes several Braccio_Plus_Robot_Arm, each robot arm will connect with a controller to accept the commands from the head module, then do complex action and works with each other.
 
 
 
-#### System Demo
+------
+
+### 2. System Demo
 
 We provide 2 demos to show how the robot system works interact with people and environment.
 
-##### Demo 1: Detect human and show arm control
+#### 2.1 Demo 1: Detect human and show arm control
 
 The robot will detect whether someone is watching it. If it identifies human is watching it, it will wave its hands to attract the people's attention, then try to grab a small box next to it and handle over the box to people.
 
@@ -63,7 +92,7 @@ Detail demo progress :
 
    
 
-##### Demo 2 : Detect QR-code position and grab the box
+#### 2.2 Demo 2 : Detect QR-code position and grab the box
 
 The robot will detect the position of the QR-code in the video picture, if a box ( with a QR-code on it ) is detected, the robot will try to grab the box and transfer it to a user pre-set location.
 
@@ -82,7 +111,7 @@ Detail demo steps :
 
 ------
 
-### Program Design
+### 3. Program Design
 
 Each module of the robot system will follow below diagram to work with each other : 
 
@@ -90,7 +119,7 @@ Each module of the robot system will follow below diagram to work with each othe
 
 `version v1.0.2` 
 
-#### Design of Robot Eyes module
+#### 3.1 Design of Robot Eyes module
 
 The robot eye module contents two main parts ( Camera detection module and UDP host ) : 
 
@@ -123,7 +152,7 @@ Hardware needed : Web camera
 
 
 
-#### Design of Robot Face Module
+#### 3.2 Design of Robot Face Module
 
 The Robot Face is the Interactive interface to make the robot can communicate with user to accept the user's control command and feedback the robot current state. Three main user interfaces are provided : Robot Arm controller UI, Robot face emoji UI and the Robot eye detection UI.
 
@@ -147,7 +176,7 @@ Hardware needed : Full HD screen
 
 
 
-#### Design of Robot Head Module
+#### 3.3 Design of Robot Head Module
 
 The Robot head is the main controller-hub to link all other modules together : it will fetch the information from eye module, analysis the situation then ask face and body to do the related action. Each robot can only have one head, if there is more than one robots in a subnet, the robot head can decide to connect to which eye nodes, face nodes and body nodes. We also provide the ability which allow two robot to "share" a same arm ( one master and many slaves ), so for a robot arm, if the master head node is not giving it a task, other slave node can also control it to finish some task. Once the master head request its arm do some tasks, the arm controller will clear all the slaves' queued tasks in its task queue.
 
@@ -164,7 +193,7 @@ Hardware needed : N.A
 
 
 
-#### Design of Robot Body Module
+#### 3.4 Design of Robot Body Module
 
 The Robot Body "Braccio_Plus_Robot_Arm_Controller"  contents two parts : 
 
@@ -201,7 +230,7 @@ Hardware needed : Braccio++ robot arm
 
 ------
 
-### Program Setup and Execution 
+### 4. Program Setup and Execution 
 
 To setup each sub system of the robot, please follow the `readme.md` file in the program's source code folder of each mode: 
 
@@ -214,7 +243,7 @@ To setup each sub system of the robot, please follow the `readme.md` file in the
 
 ------
 
-### Problem and Solution
+### 5. Problem and Solution
 
 Refer to `doc/ProblemAndSolution.md`
 
