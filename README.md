@@ -1,4 +1,6 @@
 # Braccio_Plus_Robot_Arm_Controller
+us English | [cn 中文](Readme_CN.md)
+
 **Project Design Purpose** : The robot arms are widely used in the different kinds of Industry 4.0 scenario such as create smart factories with the interconnection of systems that can exchange data, integrate the entire production chain and make decentralized decisions. We want to create a simple robot arm control software ( with UI ) which allows the user can remote control the [Braccio++ Robot Arm](https://store.arduino.cc/products/braccioplusplus) via Serial port, UDP or TCP and let the robot arm do some complex actions sequence ( such as grab a box and transfer the boxes on to canvas conveyer). The program is designed and implemented for below purpose : 
 
 - **Testing** : For user who wants to try, learn and test their Braccio++ robot arm. 
@@ -12,6 +14,8 @@
 # Copyright:   Copyright (c) 2023 LiuYuancheng
 # License:     MIT License
 ```
+
+**Table of Contents**
 
 [TOC]
 
